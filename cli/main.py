@@ -63,7 +63,32 @@ def cmd_bench(args: argparse.Namespace) -> int:
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
-    raise SystemExit("`inferlab compare` not yet implemented (step 9)")
+    from report.build import (
+        BENCH_RESULTS_DIR,
+        DEFAULT_GPU_DOLLAR_PER_HR,
+        EVAL_RESULTS_DIR,
+        OUTPUT_DIR,
+        TARGET_CONCURRENCY,
+        build_comparison,
+        render_json,
+        render_markdown,
+    )
+
+    rows = build_comparison(
+        eval_dir=Path(args.eval_dir) if args.eval_dir else EVAL_RESULTS_DIR,
+        bench_dir=Path(args.bench_dir) if args.bench_dir else BENCH_RESULTS_DIR,
+        gpu_dollar_per_hr=args.gpu_dollar_per_hr,
+        target_c=args.target_concurrency,
+    )
+    md = render_markdown(rows)
+    print(md)
+
+    out_dir = Path(args.output_dir) if args.output_dir else OUTPUT_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "comparison.md").write_text(md + "\n", encoding="utf-8")
+    (out_dir / "comparison.json").write_text(render_json(rows), encoding="utf-8")
+    print(f"\nWrote {out_dir / 'comparison.md'}\nWrote {out_dir / 'comparison.json'}", file=sys.stderr)
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -95,7 +120,15 @@ def build_parser() -> argparse.ArgumentParser:
     px = sub.add_parser("extract", help="Extract one invoice via vLLM endpoint (step 7)")
     px.set_defaults(func=cmd_extract)
 
-    pc = sub.add_parser("compare", help="Build the comparison table (step 9)")
+    pc = sub.add_parser("compare", help="Build the comparison table from eval/ + bench/ results")
+    pc.add_argument("--eval-dir", default=None)
+    pc.add_argument("--bench-dir", default=None)
+    pc.add_argument("--output-dir", default=None)
+    pc.add_argument(
+        "--gpu-dollar-per-hr", type=float, default=0.50,
+        help="GPU price for self-hosted $/1k calculation (default: $0.50/hr ~ L4)",
+    )
+    pc.add_argument("--target-concurrency", type=int, default=16)
     pc.set_defaults(func=cmd_compare)
 
     return p
