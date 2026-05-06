@@ -16,8 +16,29 @@ mkdir -p "$RESULTS_DIR"
 cd "$REPO_ROOT"
 
 stop_vllm() {
-    pkill -9 -f "vllm serve" 2>/dev/null || true
+    # vLLM spawns workers (vllm.v1.engine.core, ...) that don't have "vllm serve" in argv,
+    # so they survive a narrow pkill and keep their CUDA contexts. Match anything vllm-ish,
+    # then nuke any process still holding the GPU, then wait for memory to actually drain.
+    pkill -9 -f vllm 2>/dev/null || true
+    sleep 3
+    nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null \
+        | tr -d ' ' | grep -E '^[0-9]+$' | xargs -r kill -9 2>/dev/null || true
     sleep 5
+
+    # Poll until at least 90% of GPU memory is free (or 60s elapses).
+    local total free target i
+    total=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -1 | tr -d ' ')
+    target=$(( total * 90 / 100 ))
+    for i in $(seq 1 30); do
+        free=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | head -1 | tr -d ' ')
+        if [ "$free" -gt "$target" ]; then
+            echo "   GPU free: ${free}MB / ${total}MB"
+            return 0
+        fi
+        sleep 2
+    done
+    echo "WARNING: only ${free}MB free of ${total}MB after 60s wait — vLLM may fail to start" >&2
+    nvidia-smi
 }
 
 wait_for_server() {
