@@ -1,0 +1,66 @@
+{
+  "vanilla": {
+    "eval": {
+      "schema_validity": 1.0,
+      "field_accuracy_macro": 0.8773333333333334,
+      "record_accuracy": 0.664,
+      "field_accuracy": {
+        "vendor_name": 0.864,
+        "invoice_date": 0.928,
+        "total_amount": 0.84
+      },
+      "p50_ms": 1172.775670000192,
+      "p99_ms": 4159.571411999423
+    },
+    "bench": {
+      "c1": {
+        "throughput_rps": 0.697797571911469,
+        "p50_ms": 1315.4641910005012,
+        "p99_ms": 3051.4262850001614,
+        "n_success": 50,
+        "n_errors": 0,
+        "first_errors": []
+      },
+      "c16": {
+        "throughput_rps": 8.95720362259606,
+        "p50_ms": 1342.2577370001818,
+        "p99_ms": 3783.8428610002666,
+        "n_success": 50,
+        "n_errors": 0,
+        "first_errors": []
+      }
+    }
+  },
+  "AWQ": {
+    "eval": {
+      "schema_validity": 1.0,
+      "field_accuracy_macro": 0.8773333333333332,
+      "record_accuracy": 0.68,
+      "field_accuracy": {
+        "vendor_name": 0.856,
+        "invoice_date": 0.944,
+        "total_amount": 0.832
+      },
+      "p50_ms": 3895.064158000423,
+      "p99_ms": 15275.770045999707
+    },
+    "bench": {
+      "c1": {
+        "throughput_rps": 0.2176647582056353,
+        "p50_ms": 4109.911264999937,
+        "p99_ms": 10847.605766000015,
+        "n_success": 50,
+        "n_errors": 0,
+        "first_errors": []
+      },
+      "c16": {
+        "throughput_rps": 2.8055297583167365,
+        "p50_ms": 4435.802891999629,
+        "p99_ms": 11186.558183999296,
+        "n_success": 50,
+        "n_errors": 0,
+        "first_errors": []
+      }
+    }
+  }
+}

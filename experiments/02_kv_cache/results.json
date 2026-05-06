@@ -1,0 +1,448 @@
+{
+  "experiment": "02_kv_cache",
+  "model": "Qwen/Qwen2.5-3B-Instruct",
+  "concurrency": 16,
+  "n_requests_per_length": 50,
+  "input_lengths_chars": [
+    512,
+    1024,
+    2048
+  ],
+  "runs": [
+    {
+      "target_chars": 512,
+      "n_requests": 50,
+      "concurrency": 16,
+      "wall_clock_s": 8.592872188000001,
+      "n_success": 50,
+      "n_errors": 0,
+      "first_error": null,
+      "avg_input_tokens": 487.8,
+      "avg_output_tokens": 206.0,
+      "peak_cache_usage_perc": 0.0023552948665483964,
+      "n_metric_samples": 33,
+      "metrics_tail": [
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2728.377214765
+        },
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 16.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2728.634722691
+        },
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 16.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2728.892481715
+        },
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 16.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2729.149992421
+        },
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 16.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2729.407828053
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0010912563088255611,
+          "t": 2729.665660137
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0014731960169144243,
+          "t": 2729.92807865
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0018187605147091945,
+          "t": 2730.187230838
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0022007002227981687,
+          "t": 2730.445335852
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002346201063974873,
+          "t": 2730.704503342
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0019915427636065797,
+          "t": 2730.962723877
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0023552948665483964,
+          "t": 2731.221090072
+        },
+        {
+          "vllm:num_requests_running": 13.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0017823853044149907,
+          "t": 2731.484095281
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002173418815077488,
+          "t": 2731.741771866
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0020279179739007835,
+          "t": 2731.999687798
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0019824489610330565,
+          "t": 2732.257267045
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0022370754330923726,
+          "t": 2732.516029842
+        },
+        {
+          "vllm:num_requests_running": 15.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002082480789342034,
+          "t": 2732.77371624
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0021097621970627145,
+          "t": 2733.031734472
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0021097621970627145,
+          "t": 2733.289402639
+        },
+        {
+          "vllm:num_requests_running": 15.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.001918792343018283,
+          "t": 2733.547484366
+        },
+        {
+          "vllm:num_requests_running": 14.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0021916064202246455,
+          "t": 2733.805375779
+        },
+        {
+          "vllm:num_requests_running": 9.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0016550720683854436,
+          "t": 2734.063064756
+        },
+        {
+          "vllm:num_requests_running": 7.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0016096030555177165,
+          "t": 2734.320737566
+        },
+        {
+          "vllm:num_requests_running": 4.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0011185377165461308,
+          "t": 2734.578398728
+        },
+        {
+          "vllm:num_requests_running": 2.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0006820351930159063,
+          "t": 2734.836046745
+        },
+        {
+          "vllm:num_requests_running": 1.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0004001273132360206,
+          "t": 2735.09348232
+        },
+        {
+          "vllm:num_requests_running": 1.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0004001273132360206,
+          "t": 2735.351190033
+        },
+        {
+          "vllm:num_requests_running": 1.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0004001273132360206,
+          "t": 2735.608771475
+        },
+        {
+          "vllm:num_requests_running": 1.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0004092211158095438,
+          "t": 2735.866936456
+        }
+      ]
+    },
+    {
+      "target_chars": 1024,
+      "n_requests": 50,
+      "concurrency": 16,
+      "wall_clock_s": 4.16589159599971,
+      "n_success": 50,
+      "n_errors": 0,
+      "first_error": null,
+      "avg_input_tokens": 777.4,
+      "avg_output_tokens": 161.86,
+      "peak_cache_usage_perc": 0.0029100168235347557,
+      "n_metric_samples": 16,
+      "metrics_tail": [
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2736.186832531
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002209794025371692,
+          "t": 2736.443998427
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0025644523257399854,
+          "t": 2736.70159427
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0029100168235347557,
+          "t": 2736.959471942
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0027008593643431666,
+          "t": 2737.217622849
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0027827035875050976,
+          "t": 2737.476048629
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002418951484563281,
+          "t": 2737.734886573
+        },
+        {
+          "vllm:num_requests_running": 15.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.00262810894375487,
+          "t": 2737.991978085
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0028190787977993015,
+          "t": 2738.249551552
+        },
+        {
+          "vllm:num_requests_running": 14.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0027463283772108937,
+          "t": 2738.506347526
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002546264720592939,
+          "t": 2738.764085592
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002673577956622597,
+          "t": 2739.022208241
+        },
+        {
+          "vllm:num_requests_running": 15.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0027827035875050976,
+          "t": 2739.279980535
+        },
+        {
+          "vllm:num_requests_running": 11.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002637202746328393,
+          "t": 2739.537514632
+        },
+        {
+          "vllm:num_requests_running": 5.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0015550402400763552,
+          "t": 2739.795219973
+        },
+        {
+          "vllm:num_requests_running": 2.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0009821306779429495,
+          "t": 2740.053120107
+        }
+      ]
+    },
+    {
+      "target_chars": 2048,
+      "n_requests": 50,
+      "concurrency": 16,
+      "wall_clock_s": 4.770175976999781,
+      "n_success": 50,
+      "n_errors": 0,
+      "first_error": null,
+      "avg_input_tokens": 1358.0,
+      "avg_output_tokens": 185.4,
+      "peak_cache_usage_perc": 0.004665120720229177,
+      "n_metric_samples": 19,
+      "metrics_tail": [
+        {
+          "vllm:num_requests_running": 0.0,
+          "vllm:num_requests_waiting": 1.0,
+          "vllm:kv_cache_usage_perc": 0.0,
+          "t": 2740.369339796
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.003837584686036455,
+          "t": 2740.627068861
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0041558677761105445,
+          "t": 2740.885847954
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004555995089346565,
+          "t": 2741.143636717
+        },
+        {
+          "vllm:num_requests_running": 13.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0036375210294185,
+          "t": 2741.404772275
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004665120720229177,
+          "t": 2741.664517611
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004555995089346565,
+          "t": 2741.92392496
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004183149183831225,
+          "t": 2742.185287364
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004401400445596337,
+          "t": 2742.445634294
+        },
+        {
+          "vllm:num_requests_running": 15.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004537807484199519,
+          "t": 2742.709205191
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004537807484199519,
+          "t": 2742.969477816
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004346837630155087,
+          "t": 2743.226518089
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0045741826944937225,
+          "t": 2743.484090743
+        },
+        {
+          "vllm:num_requests_running": 16.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004392306643022814,
+          "t": 2743.743035989
+        },
+        {
+          "vllm:num_requests_running": 12.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004228618196698952,
+          "t": 2744.001305083
+        },
+        {
+          "vllm:num_requests_running": 12.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.004519619879052472,
+          "t": 2744.258997591
+        },
+        {
+          "vllm:num_requests_running": 6.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0033556131496385033,
+          "t": 2744.516611898
+        },
+        {
+          "vllm:num_requests_running": 3.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.002428045287136804,
+          "t": 2744.774364048
+        },
+        {
+          "vllm:num_requests_running": 1.0,
+          "vllm:num_requests_waiting": 0.0,
+          "vllm:kv_cache_usage_perc": 0.0009002864547810185,
+          "t": 2745.03216872
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "gpu_dollar_per_hr": 1.5,
+  "points": [
+    {
+      "name": "vLLM-vanilla",
+      "record_acc": 0.664,
+      "throughput_rps": 8.95720362259606,
+      "throughput_c": 16,
+      "cost_per_1k_usd": 0.04651749410000623,
+      "is_self_hosted": true,
+      "is_dominated": false,
+      "is_partial_data": false
+    },
+    {
+      "name": "vLLM-AWQ",
+      "record_acc": 0.68,
+      "throughput_rps": 2.8055297583167365,
+      "throughput_c": 16,
+      "cost_per_1k_usd": 0.14851621709999563,
+      "is_self_hosted": true,
+      "is_dominated": false,
+      "is_partial_data": false
+    },
+    {
+      "name": "vLLM-spec-K4",
+      "record_acc": 0.84,
+      "throughput_rps": 0.2644038977822885,
+      "throughput_c": 1,
+      "cost_per_1k_usd": 1.5758718769333426,
+      "is_self_hosted": true,
+      "is_dominated": true,
+      "is_partial_data": true
+    },
+    {
+      "name": "gpt-4o-mini",
+      "record_acc": 0.904,
+      "throughput_rps": 1.2107533819940854,
+      "throughput_c": 4,
+      "cost_per_1k_usd": 0.22524239999999995,
+      "is_self_hosted": false,
+      "is_dominated": false,
+      "is_partial_data": false
+    },
+    {
+      "name": "gemini-flash-lite",
+      "record_acc": 0.872,
+      "throughput_rps": 2.6217830925428762,
+      "throughput_c": 4,
+      "cost_per_1k_usd": 0.16315440000000003,
+      "is_self_hosted": false,
+      "is_dominated": false,
+      "is_partial_data": false
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "predictor": "vllm-Qwen-3B-spec-K2",
+  "concurrency": 1,
+  "n_requests": 25,
+  "n_success": 25,
+  "n_errors": 0,
+  "wall_clock_s": 78.63817682900117,
+  "throughput_rps": 0.31791174475423734,
+  "latency_ms": {
+    "n": 25,
+    "min": 1855.9144209993974,
+    "p50": 2642.2767320000276,
+    "p95": 6730.745519998891,
+    "p99": 7046.493644000293,
+    "max": 7046.493644000293,
+    "mean": 3145.432876559862
+  },
+  "metadata": {
+    "timestamp_utc": "2026-05-06T18:36:50.539507Z",
+    "seed": 42,
+    "first_5_errors": []
+  }
+}

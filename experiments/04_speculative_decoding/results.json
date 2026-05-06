@@ -1,0 +1,67 @@
+{
+  "K": {
+    "2": {
+      "bench_c1": {
+        "throughput_rps": 0.31791174475423734,
+        "p50_ms": 2642.2767320000276,
+        "p99_ms": 7046.493644000293,
+        "n_success": 25,
+        "n_errors": 0
+      },
+      "metrics": {
+        "exists": true,
+        "raw_path": "/content/InferLab/experiments/04_speculative_decoding/metrics-spec-K2.txt",
+        "accepted_tokens": null,
+        "proposed_tokens": null,
+        "acceptance_rate": null,
+        "all_spec_metrics": {}
+      }
+    },
+    "4": {
+      "bench_c1": {
+        "throughput_rps": 0.2644038977822885,
+        "p50_ms": 3822.634690999621,
+        "p99_ms": 6706.559049000134,
+        "n_success": 25,
+        "n_errors": 0
+      },
+      "metrics": {
+        "exists": true,
+        "raw_path": "/content/InferLab/experiments/04_speculative_decoding/metrics-spec-K4.txt",
+        "accepted_tokens": null,
+        "proposed_tokens": null,
+        "acceptance_rate": null,
+        "all_spec_metrics": {}
+      }
+    },
+    "8": {
+      "bench_c1": {
+        "throughput_rps": 0.22154523070642682,
+        "p50_ms": 4297.508882000329,
+        "p99_ms": 9145.587482000337,
+        "n_success": 25,
+        "n_errors": 0
+      },
+      "metrics": {
+        "exists": true,
+        "raw_path": "/content/InferLab/experiments/04_speculative_decoding/metrics-spec-K8.txt",
+        "accepted_tokens": null,
+        "proposed_tokens": null,
+        "acceptance_rate": null,
+        "all_spec_metrics": {}
+      }
+    }
+  },
+  "vanilla_c1": {
+    "throughput_rps": 0.697797571911469,
+    "p50_ms": 1315.4641910005012,
+    "p99_ms": 3051.4262850001614,
+    "n_success": 50
+  },
+  "quality_verify_K4": {
+    "n_records": 25,
+    "schema_validity": 1.0,
+    "field_accuracy_macro": 0.9466666666666667,
+    "record_accuracy": 0.84
+  }
+}
