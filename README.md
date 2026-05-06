@@ -47,18 +47,21 @@ flowchart LR
 > Eval set: 125 invoices from SROIE 2019 (deterministic 80/20 split, seed 42).
 > SROIE ground truth covers vendor / date / total only — field accuracy is on those three fields.
 
-| Predictor                | Schema Valid | Field Acc (macro) | Record Acc | p50 lat  | p99 lat  | Throughput @16 | $/1k    |
-|--------------------------|--------------|-------------------|------------|----------|----------|----------------|---------|
-| vLLM Qwen 2.5 3B-Instruct| TBD          | TBD               | TBD        | TBD      | TBD      | TBD            | TBD     |
-| openai-gpt-4o-mini       | 100.0%       | 96.8%             | 90.4%      | 2.4 s    | 33.8 s   | n/a (API)      | $0.225  |
-| gemini-2.5-flash-lite    | 100.0%       | 95.7%             | 87.2%      | 1.5 s    | 8.7 s    | n/a (API)      | $0.163  |
+| Predictor                 | Schema Valid | Field Acc (macro) | Record Acc | p50 lat  | p99 lat  | Throughput @16 | $/1k          |
+|---------------------------|--------------|-------------------|------------|----------|----------|----------------|---------------|
+| vLLM Qwen 2.5 3B-Instruct | 100.0%       | 87.7%             | 66.4%      | **1.2 s**| **4.1 s**| TBD (step 8)   | self-hosted ¹ |
+| openai-gpt-4o-mini        | 100.0%       | 96.8%             | 90.4%      | 2.4 s    | 33.8 s   | n/a (API)      | $0.225        |
+| gemini-2.5-flash-lite     | 100.0%       | 95.7%             | 87.2%      | 1.5 s    | 8.7 s    | n/a (API)      | $0.163        |
 
-Per-field breakdown for the populated rows:
+¹ Compute cost-per-1k for vLLM is derived from GPU $/hr ÷ throughput, computed in step 9 once the load benchmark lands.
 
-| Predictor                | vendor_name | invoice_date | total_amount | hallucination |
-|--------------------------|-------------|--------------|--------------|---------------|
-| openai-gpt-4o-mini       | 93.6%       | 99.2%        | 97.6%        | 5.3%          |
-| gemini-2.5-flash-lite    | 88.8%       | 99.2%        | 99.2%        | 5.6%          |
+Per-field breakdown:
+
+| Predictor                 | vendor_name | invoice_date | total_amount | hallucination |
+|---------------------------|-------------|--------------|--------------|---------------|
+| vLLM Qwen 2.5 3B-Instruct | 86.4%       | 92.8%        | 84.0%        | 6.2%          |
+| openai-gpt-4o-mini        | 93.6%       | 99.2%        | 97.6%        | 5.3%          |
+| gemini-2.5-flash-lite     | 88.8%       | 99.2%        | 99.2%        | 5.6%          |
 
 ## How to reproduce
 
