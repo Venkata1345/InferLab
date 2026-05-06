@@ -42,7 +42,24 @@ def cmd_extract(args: argparse.Namespace) -> int:
 
 
 def cmd_bench(args: argparse.Namespace) -> int:
-    raise SystemExit("`inferlab bench` not yet implemented (step 8)")
+    from bench.load import DEFAULT_EVAL_PATH, DEFAULT_RESULTS_DIR, run_sweep
+
+    predictor = _build_predictor(args.predictor, args.model)
+    try:
+        concurrencies = [int(c) for c in args.concurrency.split(",")]
+    except ValueError as e:
+        raise SystemExit(f"--concurrency must be comma-separated ints: {e}")
+    eval_path = Path(args.eval_path) if args.eval_path else DEFAULT_EVAL_PATH
+    results_dir = Path(args.results_dir) if args.results_dir else DEFAULT_RESULTS_DIR
+    run_sweep(
+        predictor,
+        concurrencies=concurrencies,
+        eval_path=eval_path,
+        results_dir=results_dir,
+        n_requests=args.n_requests,
+        seed=args.seed,
+    )
+    return 0
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
@@ -61,7 +78,18 @@ def build_parser() -> argparse.ArgumentParser:
     pe.add_argument("--results-dir", default=None, help="Override eval/results/ output dir")
     pe.set_defaults(func=cmd_eval)
 
-    pb = sub.add_parser("bench", help="Run load benchmark (step 8)")
+    pb = sub.add_parser("bench", help="Run load benchmark (concurrency sweep)")
+    pb.add_argument("predictor", choices=["openai", "gemini", "vllm"])
+    pb.add_argument("--model", default=None, help="Override the predictor's default model")
+    pb.add_argument(
+        "--concurrency",
+        default="1,4,8,16,32",
+        help="Comma-separated concurrency levels (default: 1,4,8,16,32)",
+    )
+    pb.add_argument("--n-requests", type=int, default=100, help="Requests per concurrency level")
+    pb.add_argument("--seed", type=int, default=42)
+    pb.add_argument("--eval-path", default=None)
+    pb.add_argument("--results-dir", default=None)
     pb.set_defaults(func=cmd_bench)
 
     px = sub.add_parser("extract", help="Extract one invoice via vLLM endpoint (step 7)")
