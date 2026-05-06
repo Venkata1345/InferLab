@@ -17,12 +17,11 @@ dist/
 data/raw/
 data/processed/
 
-# Generated results
-bench/results/*.json
+# Generated results — JSONs ARE committed (canonical run records);
+# only logs and plot images are excluded.
+bench/results/*.log
 bench/results/*.png
 eval/results/*.log
-report/output/
-# eval/results/*.json IS committed — those are the comparison-table source.
 
 # Model weights / caches
 *.bin
