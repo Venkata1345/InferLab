@@ -12,8 +12,14 @@ from eval.runner import latency_stats, run_eval
 class FakePredictor:
     """Returns a fixed prediction for every call. Used for runner-shape tests."""
 
-    def __init__(self, prediction: dict, latency_ms: float = 100.0,
-                 input_tokens: int = 200, output_tokens: int = 50, name: str = "fake"):
+    def __init__(
+        self,
+        prediction: dict,
+        latency_ms: float = 100.0,
+        input_tokens: int = 200,
+        output_tokens: int = 50,
+        name: str = "fake",
+    ):
         self.name = name
         self._pred = prediction
         self._lat = latency_ms
@@ -39,17 +45,29 @@ def synth_eval(tmp_path: Path) -> Path:
         {
             "invoice_id": "001",
             "input_text": "ACME CORP\nINV-1\n2024-01-01\nTotal: USD 9.99",
-            "expected_json": {"vendor_name": "ACME CORP", "invoice_date": "2024-01-01", "total_amount": 9.99},
+            "expected_json": {
+                "vendor_name": "ACME CORP",
+                "invoice_date": "2024-01-01",
+                "total_amount": 9.99,
+            },
         },
         {
             "invoice_id": "002",
             "input_text": "ACME CORP\nINV-1\n2024-01-01\nTotal: USD 9.99",
-            "expected_json": {"vendor_name": "ACME CORP", "invoice_date": "2024-01-01", "total_amount": 9.99},
+            "expected_json": {
+                "vendor_name": "ACME CORP",
+                "invoice_date": "2024-01-01",
+                "total_amount": 9.99,
+            },
         },
         {
             "invoice_id": "003",
             "input_text": "ACME CORP\nINV-1\n2024-01-01\nTotal: USD 9.99",
-            "expected_json": {"vendor_name": "ACME CORP", "invoice_date": "2024-01-01", "total_amount": 50.0},
+            "expected_json": {
+                "vendor_name": "ACME CORP",
+                "invoice_date": "2024-01-01",
+                "total_amount": 50.0,
+            },
         },
     ]
     path = tmp_path / "eval.jsonl"
@@ -106,9 +124,7 @@ class TestRunEval:
 
     def test_limit_truncates_eval(self, synth_eval: Path, tmp_path: Path) -> None:
         predictor = FakePredictor(PERFECT_PRED, name="fake-predictor")
-        out_path = run_eval(
-            predictor, eval_path=synth_eval, results_dir=tmp_path / "r", limit=1
-        )
+        out_path = run_eval(predictor, eval_path=synth_eval, results_dir=tmp_path / "r", limit=1)
         data = json.loads(out_path.read_text(encoding="utf-8"))
         assert data["n_records"] == 1
 

@@ -29,9 +29,7 @@ from dateutil import parser as date_parser
 from tqdm import tqdm
 
 SROIE_COMMIT = "27be4271b251c256f695acbade9a801bffe85994"
-SROIE_TARBALL_URL = (
-    f"https://github.com/zzzDavid/ICDAR-2019-SROIE/archive/{SROIE_COMMIT}.tar.gz"
-)
+SROIE_TARBALL_URL = f"https://github.com/zzzDavid/ICDAR-2019-SROIE/archive/{SROIE_COMMIT}.tar.gz"
 EXPECTED_RECORD_COUNT = 626
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -52,6 +50,7 @@ class SroieRecord:
 
 
 # ---------- download ----------
+
 
 def download_sroie(raw_dir: Path) -> None:
     """Download + extract data/key/*.json and data/box/*.csv from the pinned mirror.
@@ -89,9 +88,10 @@ def _stream_download(url: str, dest: Path) -> None:
     with httpx.stream("GET", url, follow_redirects=True, timeout=120.0) as r:
         r.raise_for_status()
         total = int(r.headers.get("content-length", 0)) or None
-        with dest.open("wb") as f, tqdm(
-            total=total, unit="B", unit_scale=True, desc=dest.name
-        ) as pbar:
+        with (
+            dest.open("wb") as f,
+            tqdm(total=total, unit="B", unit_scale=True, desc=dest.name) as pbar,
+        ):
             for chunk in r.iter_bytes(chunk_size=64 * 1024):
                 f.write(chunk)
                 pbar.update(len(chunk))
@@ -107,9 +107,9 @@ def _extract_key_box(tarball_path: Path, key_dir: Path, box_dir: Path) -> None:
                 continue
             rel = parts[1]
             if rel.startswith("data/key/") and rel.endswith(".json"):
-                _safe_write(tar, member, key_dir, rel[len("data/key/"):])
+                _safe_write(tar, member, key_dir, rel[len("data/key/") :])
             elif rel.startswith("data/box/") and rel.endswith(".csv"):
-                _safe_write(tar, member, box_dir, rel[len("data/box/"):])
+                _safe_write(tar, member, box_dir, rel[len("data/box/") :])
 
 
 def _safe_write(
@@ -133,6 +133,7 @@ def _already_downloaded(key_dir: Path, box_dir: Path) -> bool:
 
 
 # ---------- load + parse ----------
+
 
 def load_records(raw_dir: Path) -> list[SroieRecord]:
     """Pair each key/NNN.json with box/NNN.csv → SroieRecord list, sorted by id."""
@@ -183,7 +184,7 @@ def normalize_total(raw: str | None) -> float | None:
         return None
     s = raw.strip().replace(",", "")
     s = _TOTAL_STRIP_RE.sub("", s)
-    if not s or s in {".", "-", "-.", "."}:
+    if not s or s in {".", "-", "-."}:
         return None
     try:
         return float(s)
@@ -222,6 +223,7 @@ def map_to_schema(raw_key: dict[str, Any]) -> dict[str, Any]:
 
 
 # ---------- build split ----------
+
 
 def build_split(
     raw_dir: Path,
@@ -267,6 +269,7 @@ def _write_jsonl(path: Path, records: list[SroieRecord]) -> int:
 
 # ---------- verify ----------
 
+
 def verify_jsonl(path: Path) -> tuple[int, list[str]]:
     """Re-read a JSONL and check every row parses + has at least one expected field.
 
@@ -291,12 +294,16 @@ def verify_jsonl(path: Path) -> tuple[int, list[str]]:
                     problems.append(f"{path.name}:{lineno} expected_json empty/non-dict")
                     continue
                 # Light schema checks on the keys we do produce
-                if "invoice_date" in expected and not _looks_like_iso_date(expected["invoice_date"]):
+                if "invoice_date" in expected and not _looks_like_iso_date(
+                    expected["invoice_date"]
+                ):
                     problems.append(
                         f"{path.name}:{lineno} invoice_date {expected['invoice_date']!r} not ISO"
                     )
                     continue
-                if "total_amount" in expected and not isinstance(expected["total_amount"], (int, float)):
+                if "total_amount" in expected and not isinstance(
+                    expected["total_amount"], (int, float)
+                ):
                     problems.append(
                         f"{path.name}:{lineno} total_amount {expected['total_amount']!r} not numeric"
                     )
@@ -313,6 +320,7 @@ def _looks_like_iso_date(s: object) -> bool:
 
 
 # ---------- sample preview ----------
+
 
 def preview_samples(eval_records: list[SroieRecord], n: int = 3, seed: int = DEFAULT_SEED) -> None:
     """Print n records side-by-side: SROIE raw fields → mapped expected_json."""
@@ -333,6 +341,7 @@ def preview_samples(eval_records: list[SroieRecord], n: int = 3, seed: int = DEF
 
 
 # ---------- main ----------
+
 
 def main() -> None:
     # Windows default cp1252 chokes on non-ASCII OCR text — force UTF-8 output.

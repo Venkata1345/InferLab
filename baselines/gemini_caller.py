@@ -73,10 +73,10 @@ def _is_retryable(exc: BaseException) -> bool:
     differ across SDK versions."""
     name = type(exc).__name__
     return name in {
-        "ResourceExhausted",         # 429
-        "DeadlineExceeded",          # 504
-        "ServiceUnavailable",        # 503
-        "InternalServerError",       # 500
+        "ResourceExhausted",  # 429
+        "DeadlineExceeded",  # 504
+        "ServiceUnavailable",  # 503
+        "InternalServerError",  # 500
         "RetryError",
     }
 

@@ -48,7 +48,7 @@ def cmd_bench(args: argparse.Namespace) -> int:
     try:
         concurrencies = [int(c) for c in args.concurrency.split(",")]
     except ValueError as e:
-        raise SystemExit(f"--concurrency must be comma-separated ints: {e}")
+        raise SystemExit(f"--concurrency must be comma-separated ints: {e}") from e
     eval_path = Path(args.eval_path) if args.eval_path else DEFAULT_EVAL_PATH
     results_dir = Path(args.results_dir) if args.results_dir else DEFAULT_RESULTS_DIR
     run_sweep(
@@ -65,10 +65,8 @@ def cmd_bench(args: argparse.Namespace) -> int:
 def cmd_compare(args: argparse.Namespace) -> int:
     from report.build import (
         BENCH_RESULTS_DIR,
-        DEFAULT_GPU_DOLLAR_PER_HR,
         EVAL_RESULTS_DIR,
         OUTPUT_DIR,
-        TARGET_CONCURRENCY,
         build_comparison,
         render_json,
         render_markdown,
@@ -87,7 +85,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "comparison.md").write_text(md + "\n", encoding="utf-8")
     (out_dir / "comparison.json").write_text(render_json(rows), encoding="utf-8")
-    print(f"\nWrote {out_dir / 'comparison.md'}\nWrote {out_dir / 'comparison.json'}", file=sys.stderr)
+    print(
+        f"\nWrote {out_dir / 'comparison.md'}\nWrote {out_dir / 'comparison.json'}", file=sys.stderr
+    )
     return 0
 
 
@@ -125,7 +125,9 @@ def build_parser() -> argparse.ArgumentParser:
     pc.add_argument("--bench-dir", default=None)
     pc.add_argument("--output-dir", default=None)
     pc.add_argument(
-        "--gpu-dollar-per-hr", type=float, default=0.50,
+        "--gpu-dollar-per-hr",
+        type=float,
+        default=0.50,
         help="GPU price for self-hosted $/1k calculation (default: $0.50/hr ~ L4)",
     )
     pc.add_argument("--target-concurrency", type=int, default=16)

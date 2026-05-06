@@ -16,8 +16,9 @@ from report.build import (
 )
 
 
-def _eval_doc(name: str, *, schema=1.0, macro=0.95, record=0.90,
-              p50=2000.0, p99=5000.0, cost_per_1k=0.20) -> dict:
+def _eval_doc(
+    name: str, *, schema=1.0, macro=0.95, record=0.90, p50=2000.0, p99=5000.0, cost_per_1k=0.20
+) -> dict:
     return {
         "predictor": name,
         "n_records": 100,
@@ -33,15 +34,26 @@ def _eval_doc(name: str, *, schema=1.0, macro=0.95, record=0.90,
             "n_predictions": 500,
             "n_hallucinations": 25,
         },
-        "latency_ms": {"n": 100, "p50": p50, "p95": p50 * 2, "p99": p99, "min": p50 * 0.5,
-                       "max": p99, "mean": p50 * 1.2},
+        "latency_ms": {
+            "n": 100,
+            "p50": p50,
+            "p95": p50 * 2,
+            "p99": p99,
+            "min": p50 * 0.5,
+            "max": p99,
+            "mean": p50 * 1.2,
+        },
         "cost": {
             "input_tokens_total": 100000,
             "output_tokens_total": 20000,
             "input_tokens_per_record_mean": 1000,
             "output_tokens_per_record_mean": 200,
-            "pricing": {"input_per_m": 0.15, "output_per_m": 0.60, "as_of": "2026-05",
-                        "source": "test"},
+            "pricing": {
+                "input_per_m": 0.15,
+                "output_per_m": 0.60,
+                "as_of": "2026-05",
+                "source": "test",
+            },
             "cost_per_1k_invoices_usd": cost_per_1k,
             "total_cost_usd": cost_per_1k / 10,
         },
@@ -57,8 +69,15 @@ def _bench_doc(name: str, c: int, throughput: float) -> dict:
         "n_errors": 0,
         "wall_clock_s": 100 / throughput,
         "throughput_rps": throughput,
-        "latency_ms": {"n": 100, "min": 1000.0, "p50": 1500.0, "p95": 3000.0,
-                       "p99": 4000.0, "max": 4500.0, "mean": 1700.0},
+        "latency_ms": {
+            "n": 100,
+            "min": 1000.0,
+            "p50": 1500.0,
+            "p95": 3000.0,
+            "p99": 4000.0,
+            "max": 4500.0,
+            "mean": 1700.0,
+        },
         "metadata": {"timestamp_utc": "2026-05-05T00:00:00Z", "seed": 42},
     }
 
@@ -85,6 +104,7 @@ def synth_dirs(tmp_path: Path) -> tuple[Path, Path]:
 
 
 # ---------- loaders ----------
+
 
 class TestLoaders:
     def test_load_eval(self, synth_dirs: tuple[Path, Path]) -> None:
@@ -113,13 +133,17 @@ class TestLoaders:
 
 # ---------- build_row ----------
 
+
 class TestBuildRow:
     def test_api_predictor_uses_eval_cost(self, synth_dirs: tuple[Path, Path]) -> None:
         eval_dir, _ = synth_dirs
         eval_results = load_eval_results(eval_dir)
         row = build_row(
-            "openai-gpt-4o-mini", eval_results["openai-gpt-4o-mini"], None,
-            gpu_dollar_per_hr=0.5, target_c=16,
+            "openai-gpt-4o-mini",
+            eval_results["openai-gpt-4o-mini"],
+            None,
+            gpu_dollar_per_hr=0.5,
+            target_c=16,
         )
         assert row.cost_per_1k_usd == pytest.approx(0.225)
         assert "token cost" in row.cost_basis
@@ -129,8 +153,11 @@ class TestBuildRow:
         eval_results = load_eval_results(eval_dir)
         bench_results = load_bench_results(bench_dir)
         row = build_row(
-            "vllm-Qwen", eval_results["vllm-Qwen"], bench_results["vllm-Qwen"],
-            gpu_dollar_per_hr=0.5, target_c=16,
+            "vllm-Qwen",
+            eval_results["vllm-Qwen"],
+            bench_results["vllm-Qwen"],
+            gpu_dollar_per_hr=0.5,
+            target_c=16,
         )
         # $/1k = (0.5/3600) / 7.95 * 1000
         expected = (0.5 / 3600.0) / 7.95 * 1000.0
@@ -142,8 +169,9 @@ class TestBuildRow:
         _, bench_dir = synth_dirs
         bench_results = load_bench_results(bench_dir)
         # Ask for c=20 — no exact match, should pick c=16 (closer than c=32)
-        row = build_row("vllm-Qwen", None, bench_results["vllm-Qwen"],
-                        gpu_dollar_per_hr=0.5, target_c=20)
+        row = build_row(
+            "vllm-Qwen", None, bench_results["vllm-Qwen"], gpu_dollar_per_hr=0.5, target_c=20
+        )
         assert row.target_concurrency == 16
 
     def test_no_eval_no_bench_returns_empty_row(self) -> None:
@@ -155,6 +183,7 @@ class TestBuildRow:
 
 
 # ---------- build_comparison ----------
+
 
 class TestBuildComparison:
     def test_orders_vllm_first(self, synth_dirs: tuple[Path, Path]) -> None:
@@ -173,6 +202,7 @@ class TestBuildComparison:
 
 
 # ---------- renderers ----------
+
 
 class TestRenderMarkdown:
     def test_table_has_header_separator_rows(self, synth_dirs: tuple[Path, Path]) -> None:

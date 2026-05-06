@@ -22,8 +22,8 @@ EVAL_RESULTS_DIR = ROOT / "eval" / "results"
 BENCH_RESULTS_DIR = ROOT / "bench" / "results"
 OUTPUT_DIR = ROOT / "report" / "output"
 
-DEFAULT_GPU_DOLLAR_PER_HR = 0.50    # L4 on Colab Pro (rough; override per environment)
-TARGET_CONCURRENCY = 16             # The headline "Throughput @16" column
+DEFAULT_GPU_DOLLAR_PER_HR = 0.50  # L4 on Colab Pro (rough; override per environment)
+TARGET_CONCURRENCY = 16  # The headline "Throughput @16" column
 
 
 @dataclass
@@ -44,6 +44,7 @@ class PredictorRow:
 
 
 # ---------- loaders ----------
+
 
 def load_eval_results(eval_dir: Path) -> dict[str, dict[str, Any]]:
     """Read every *.json under eval_dir → {predictor.name: full_eval_dict}."""
@@ -80,6 +81,7 @@ def load_bench_results(bench_dir: Path) -> dict[str, dict[int, dict[str, Any]]]:
 
 # ---------- row builder ----------
 
+
 def build_row(
     name: str,
     eval_data: dict[str, Any] | None,
@@ -105,8 +107,10 @@ def build_row(
 
     if bench_data:
         # Prefer exact target_c; otherwise the closest available level.
-        chosen_c = target_c if target_c in bench_data else min(
-            bench_data.keys(), key=lambda c: abs(c - target_c)
+        chosen_c = (
+            target_c
+            if target_c in bench_data
+            else min(bench_data.keys(), key=lambda c: abs(c - target_c))
         )
         row.target_concurrency = chosen_c
         row.throughput_rps_at_target = bench_data[chosen_c].get("throughput_rps")
@@ -115,9 +119,7 @@ def build_row(
     # Cost: self-hosted vs API
     if name.startswith("vllm-"):
         if row.throughput_rps_at_target and row.throughput_rps_at_target > 0:
-            row.cost_per_1k_usd = (
-                gpu_dollar_per_hr / 3600.0 / row.throughput_rps_at_target * 1000.0
-            )
+            row.cost_per_1k_usd = gpu_dollar_per_hr / 3600.0 / row.throughput_rps_at_target * 1000.0
             row.cost_basis = (
                 f"GPU ${gpu_dollar_per_hr:.2f}/hr / "
                 f"{row.throughput_rps_at_target:.2f} req/s @ c={row.target_concurrency}"
@@ -159,6 +161,7 @@ def build_comparison(
 
 # ---------- renderers ----------
 
+
 def _fmt_pct(x: float | None) -> str:
     return f"{x:.1%}" if x is not None else "—"
 
@@ -181,8 +184,14 @@ def _fmt_cost(x: float | None) -> str:
 
 def render_markdown(rows: list[PredictorRow]) -> str:
     headers = [
-        "Predictor", "Schema Valid", "Field Acc", "Record Acc",
-        "p50 lat", "p99 lat", "Throughput", "$/1k",
+        "Predictor",
+        "Schema Valid",
+        "Field Acc",
+        "Record Acc",
+        "p50 lat",
+        "p99 lat",
+        "Throughput",
+        "$/1k",
     ]
     lines = [
         "| " + " | ".join(headers) + " |",
@@ -208,6 +217,7 @@ def render_json(rows: list[PredictorRow]) -> str:
 
 
 # ---------- CLI ----------
+
 
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):

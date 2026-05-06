@@ -8,8 +8,8 @@
     "p99_latency_ms": 4146.824050000305,
     "throughput_rps_at_target": 7.945413278044087,
     "target_concurrency": 16,
-    "cost_per_1k_usd": 0.052441157191666816,
-    "cost_basis": "GPU $1.50/hr / 7.95 req/s @ c=16",
+    "cost_per_1k_usd": 0.0520915494770557,
+    "cost_basis": "GPU $1.49/hr / 7.95 req/s @ c=16",
     "details": {
       "field_accuracy": {
         "vendor_name": {

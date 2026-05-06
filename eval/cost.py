@@ -12,15 +12,13 @@ from dataclasses import dataclass
 class Pricing:
     """Per-million-token API pricing snapshot."""
 
-    input_per_m: float    # USD per 1M input (prompt) tokens
-    output_per_m: float   # USD per 1M output (completion) tokens
-    as_of: str            # YYYY-MM — the date of this snapshot
-    source: str           # short label / URL where the price was taken from
+    input_per_m: float  # USD per 1M input (prompt) tokens
+    output_per_m: float  # USD per 1M output (completion) tokens
+    as_of: str  # YYYY-MM — the date of this snapshot
+    source: str  # short label / URL where the price was taken from
 
     def cost_for(self, input_tokens: int, output_tokens: int) -> float:
-        return (
-            input_tokens * self.input_per_m + output_tokens * self.output_per_m
-        ) / 1_000_000.0
+        return (input_tokens * self.input_per_m + output_tokens * self.output_per_m) / 1_000_000.0
 
     def cost_per_1k_invoices(
         self, total_input_tokens: int, total_output_tokens: int, n_invoices: int

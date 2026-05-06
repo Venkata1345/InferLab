@@ -60,8 +60,11 @@ def test_gemini_structured_output_smoke() -> None:
         non_null = sum(
             v is not None
             for v in (
-                invoice.vendor_name, invoice.invoice_number, invoice.invoice_date,
-                invoice.total_amount, invoice.currency,
+                invoice.vendor_name,
+                invoice.invoice_number,
+                invoice.invoice_date,
+                invoice.total_amount,
+                invoice.currency,
             )
         )
         assert non_null >= 1, (

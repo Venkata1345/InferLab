@@ -188,8 +188,48 @@ target. Optimizations to come, with eval re-runs after each:
 
 ## Limitations
 
-Will be honest and specific once we have numbers. Expected items:
+Concrete gaps in what's measured here. Honest framing matters more than a clean story.
 
-- SROIE ground truth lacks line items + currency, so field accuracy is partial for those fields
-- vLLM benchmarks run on a single GPU (Colab A100 or L4), not a multi-GPU production setup
-- Frontier-API latency includes network; vLLM latency is local — apples-to-oranges in the absolute, but useful for $ vs ms tradeoff
+**Eval coverage (data side)**
+- SROIE ground truth covers only **vendor / date / total** (3 of the 6 schema fields).
+  `invoice_number`, `currency`, `line_items` are predicted but **not scored against ground truth** — only checked against the OCR text by the hallucination metric. Anyone reading the table should not over-interpret a 96.8% field-accuracy number as full-schema accuracy.
+- 125-record eval set. Big enough for the headline numbers but small enough that
+  per-field deltas of a few points are within noise. Confidence intervals not reported.
+- SROIE is **Malaysian retail receipts only**. B2B invoices, multi-currency
+  documents, and longer line-itemized invoices are out of distribution.
+- Hallucination metric uses **substring matching after normalization**.
+  Numerical values can match by coincidence (e.g. predicted total `99.0` is
+  "grounded" if vendor name is `99 SPEED MART`). The metric is therefore an
+  **upper bound on faithfulness** — model can be more hallucinated than reported,
+  not less. Documented in [eval/metrics.py](eval/metrics.py).
+
+**Bench coverage (latency / throughput)**
+- vLLM throughput is **single Colab GPU only** — multi-GPU production setups
+  with tensor or pipeline parallelism would scale further but aren't tested.
+- Frontier API benches capped at **concurrency 4** (rate-limit safety on a fresh
+  account). Their actual throughput ceiling with parallel clients is much higher
+  — a `n/a` in the throughput column doesn't mean "API is slow", just "not
+  measured at meaningful saturation".
+- Latency comparison is **apples-to-oranges in the absolute**: vLLM is local
+  (no network leg); APIs include network round-trip. The shape of the
+  relationship (vLLM tighter p99, lower per-request cost) is what's meaningful,
+  not the raw millisecond gap.
+
+**Cost numbers**
+- Frontier-API $/1k uses **token cost only** (no overhead, no per-request fee
+  surcharges) at the 2026-05 published rates in [eval/cost.py](eval/cost.py).
+- Self-hosted $/1k for vLLM is **GPU $/hr ÷ throughput**. Headline figure
+  assumes ~$1.50/hr (mid-tier cloud); the same setup on Colab Pro shared
+  compute is closer to ~$0.017/1k. Full-stack production cost (storage,
+  network egress, SRE time) is ignored.
+
+**Engineering choices deferred**
+- Gemini caller still uses the **deprecated `google-generativeai` SDK**. Works
+  for now; migration to `google-genai` is parked because Part A doesn't need
+  features (like `thinking_config`) that only the new SDK exposes.
+- vLLM caller falls back to OpenAI-style `response_format`; the older
+  `extra_body={"guided_json": ...}` path is dead in vLLM 0.12+ and would have
+  silently emitted free-form output if not caught (it was, during the step 6
+  sanity check — see commit history).
+- No fine-tuning, no prompt-search, no few-shot examples. Part A intentionally
+  measures the out-of-the-box model so Part B's optimizations have a clean baseline.

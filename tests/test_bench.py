@@ -21,7 +21,9 @@ from bench.load import (
 class SleepyPredictor:
     """Sleeps `latency_s` per call, then returns a fixed dummy success."""
 
-    def __init__(self, *, latency_s: float = 0.05, name: str = "sleepy", error_every: int | None = None):
+    def __init__(
+        self, *, latency_s: float = 0.05, name: str = "sleepy", error_every: int | None = None
+    ):
         self.name = name
         self.latency_s = latency_s
         self.error_every = error_every
@@ -32,8 +34,12 @@ class SleepyPredictor:
         time.sleep(self.latency_s)
         if self.error_every and self._calls % self.error_every == 0:
             return PredictionResult(
-                invoice_id=invoice_id, prediction=None, raw_output=None,
-                latency_ms=self.latency_s * 1000, input_tokens=None, output_tokens=None,
+                invoice_id=invoice_id,
+                prediction=None,
+                raw_output=None,
+                latency_ms=self.latency_s * 1000,
+                input_tokens=None,
+                output_tokens=None,
                 error="synthetic error",
             )
         return PredictionResult(
@@ -41,7 +47,9 @@ class SleepyPredictor:
             prediction={"vendor_name": "X"},
             raw_output='{"vendor_name": "X"}',
             latency_ms=self.latency_s * 1000,
-            input_tokens=100, output_tokens=20, error=None,
+            input_tokens=100,
+            output_tokens=20,
+            error=None,
         )
 
 
@@ -59,6 +67,7 @@ def synth_eval(tmp_path: Path) -> Path:
 
 
 # ---------- helpers ----------
+
 
 class TestLatencyStats:
     def test_empty(self) -> None:
@@ -91,6 +100,7 @@ class TestSampleWorkload:
 
 # ---------- load_invoices ----------
 
+
 class TestLoadInvoices:
     def test_loads_jsonl(self, synth_eval: Path) -> None:
         rows = load_invoices(synth_eval)
@@ -103,6 +113,7 @@ class TestLoadInvoices:
 
 
 # ---------- run_bench ----------
+
 
 class TestRunBench:
     def test_concurrency_speeds_things_up(self, synth_eval: Path) -> None:
@@ -127,7 +138,7 @@ class TestRunBench:
         # Every 3rd call fails. concurrency=1 → call ordering is deterministic.
         p = SleepyPredictor(latency_s=0.01, error_every=3)
         r = run_bench(p, invs, concurrency=1, n_requests=9, seed=42)
-        assert r.n_errors == 3      # calls 3, 6, 9
+        assert r.n_errors == 3  # calls 3, 6, 9
         assert r.n_success == 6
         assert r.n_errors + r.n_success == r.n_requests
         assert "synthetic error" in r.metadata["first_5_errors"]
@@ -153,13 +164,17 @@ class TestRunBench:
 
 # ---------- write_result + sweep ----------
 
+
 class TestWriteResult:
     def test_filename_format(self, tmp_path: Path) -> None:
         r = BenchResult(
             predictor="vllm-Qwen_Qwen2.5-3B-Instruct",
             concurrency=16,
-            n_requests=100, n_success=100, n_errors=0,
-            wall_clock_s=10.0, throughput_rps=10.0,
+            n_requests=100,
+            n_success=100,
+            n_errors=0,
+            wall_clock_s=10.0,
+            throughput_rps=10.0,
         )
         path = write_result(r, tmp_path)
         assert path.name == "vllm-Qwen_Qwen2.5-3B-Instruct_c16.json"
@@ -172,9 +187,12 @@ class TestRunSweep:
     def test_writes_one_file_per_level(self, synth_eval: Path, tmp_path: Path) -> None:
         p = SleepyPredictor(latency_s=0.01)
         paths = run_sweep(
-            p, concurrencies=[1, 2, 4],
-            eval_path=synth_eval, results_dir=tmp_path,
-            n_requests=4, seed=42,
+            p,
+            concurrencies=[1, 2, 4],
+            eval_path=synth_eval,
+            results_dir=tmp_path,
+            n_requests=4,
+            seed=42,
         )
         assert len(paths) == 3
         names = sorted(p.name for p in paths)

@@ -11,8 +11,6 @@ from eval.metrics import (
     CURRENCY_TOKENS,
     SCALAR_FIELDS,
     AggregateMetrics,
-    FieldStats,
-    RecordResult,
     aggregate,
     compare_currency,
     compare_invoice_date,
@@ -37,6 +35,7 @@ OCR_SAMPLE = (
 
 # ---------- per-field comparators ----------
 
+
 class TestCompareVendorName:
     def test_exact(self) -> None:
         assert compare_vendor_name("ACME CORP", "ACME CORP") is True
@@ -50,14 +49,19 @@ class TestCompareVendorName:
     def test_strips_trailing_reg_code(self) -> None:
         # The exact issue we saw with GPT-4o-mini in step 3.
         assert compare_vendor_name("99 SPEED MART S/B (519537-X)", "99 SPEED MART S/B") is True
-        assert compare_vendor_name("TF VALUE-MART SDN BHD (482123-U)", "TF VALUE-MART SDN BHD") is True
+        assert (
+            compare_vendor_name("TF VALUE-MART SDN BHD (482123-U)", "TF VALUE-MART SDN BHD") is True
+        )
 
     def test_does_not_strip_mid_string_parens(self) -> None:
         # Only TRAILING reg codes should be stripped.
-        assert compare_vendor_name(
-            "BOOK TA .K (TAMAN DAYA) SDN BHD",
-            "BOOK TA .K (TAMAN DAYA) SDN BHD",
-        ) is True
+        assert (
+            compare_vendor_name(
+                "BOOK TA .K (TAMAN DAYA) SDN BHD",
+                "BOOK TA .K (TAMAN DAYA) SDN BHD",
+            )
+            is True
+        )
 
     def test_mismatch(self) -> None:
         assert compare_vendor_name("ACME CORP", "WIDGETS LLC") is False
@@ -75,7 +79,9 @@ class TestCompareInvoiceNumber:
         assert compare_invoice_number("INV-001", "INV-001") is True
 
     def test_whitespace_ignored(self) -> None:
-        assert compare_invoice_number("INV 001", "INV-001") is False  # different non-whitespace chars
+        assert (
+            compare_invoice_number("INV 001", "INV-001") is False
+        )  # different non-whitespace chars
         assert compare_invoice_number("INV001 ", " INV001") is True
 
     def test_case_insensitive(self) -> None:
@@ -190,6 +196,7 @@ class TestIsSchemaValid:
 
     def test_valid_json_string(self) -> None:
         import json
+
         assert is_schema_valid(json.dumps(VALID_INVOICE)) is True
 
     def test_missing_required_field(self) -> None:
@@ -208,6 +215,7 @@ class TestIsSchemaValid:
 
 
 # ---------- hallucination grounding ----------
+
 
 class TestIsGroundedVendorName:
     def test_exact_in_text(self) -> None:
@@ -344,7 +352,9 @@ class TestEvaluateRecord:
     def test_predicting_extra_field_outside_gt_not_scored(self) -> None:
         # Currency is not in expected_json (sparse GT), so it shouldn't be in field_matches.
         r = evaluate_record(
-            invoice_id="002", prediction=PRED_PERFECT, expected=EXPECTED_SROIE_STYLE,
+            invoice_id="002",
+            prediction=PRED_PERFECT,
+            expected=EXPECTED_SROIE_STYLE,
             ocr_text=OCR_SAMPLE,
         )
         assert "currency" not in r.field_matches
@@ -355,7 +365,9 @@ class TestEvaluateRecord:
     def test_invented_currency_flagged(self) -> None:
         pred = dict(PRED_PERFECT, currency="EUR")  # not in OCR text
         r = evaluate_record(
-            invoice_id="003", prediction=pred, expected=EXPECTED_SROIE_STYLE,
+            invoice_id="003",
+            prediction=pred,
+            expected=EXPECTED_SROIE_STYLE,
             ocr_text=OCR_SAMPLE,
         )
         assert "currency" in r.hallucinated_fields
@@ -365,7 +377,9 @@ class TestEvaluateRecord:
     def test_null_predictions_not_in_fields_predicted(self) -> None:
         pred = dict(PRED_PERFECT, invoice_number=None, currency=None)
         r = evaluate_record(
-            invoice_id="004", prediction=pred, expected=EXPECTED_SROIE_STYLE,
+            invoice_id="004",
+            prediction=pred,
+            expected=EXPECTED_SROIE_STYLE,
             ocr_text=OCR_SAMPLE,
         )
         assert "invoice_number" not in r.fields_predicted
@@ -376,7 +390,9 @@ class TestEvaluateRecord:
     def test_null_for_required_gt_field_is_wrong(self) -> None:
         pred = dict(PRED_PERFECT, total_amount=None)
         r = evaluate_record(
-            invoice_id="005", prediction=pred, expected=EXPECTED_SROIE_STYLE,
+            invoice_id="005",
+            prediction=pred,
+            expected=EXPECTED_SROIE_STYLE,
             ocr_text=OCR_SAMPLE,
         )
         assert r.field_matches["total_amount"] is False
@@ -384,8 +400,11 @@ class TestEvaluateRecord:
 
     def test_parse_failure_raw_invalid(self) -> None:
         r = evaluate_record(
-            invoice_id="006", prediction=None, expected=EXPECTED_SROIE_STYLE,
-            ocr_text=OCR_SAMPLE, raw_output="not json",
+            invoice_id="006",
+            prediction=None,
+            expected=EXPECTED_SROIE_STYLE,
+            ocr_text=OCR_SAMPLE,
+            raw_output="not json",
         )
         assert r.schema_valid is False
         assert r.fully_correct is False
@@ -396,9 +415,13 @@ class TestEvaluateRecord:
         # Edge: prediction=None passed in but raw is actually valid JSON.
         # schema_valid must reflect the raw, not be hardcoded False.
         import json
+
         r = evaluate_record(
-            invoice_id="007", prediction=None, expected=EXPECTED_SROIE_STYLE,
-            ocr_text=OCR_SAMPLE, raw_output=json.dumps(PRED_PERFECT),
+            invoice_id="007",
+            prediction=None,
+            expected=EXPECTED_SROIE_STYLE,
+            ocr_text=OCR_SAMPLE,
+            raw_output=json.dumps(PRED_PERFECT),
         )
         assert r.schema_valid is True
         assert r.fully_correct is False  # We treated it as "parse failure" upstream
@@ -407,12 +430,16 @@ class TestEvaluateRecord:
         # line_items in expected_json should not be scored (no comparator for it).
         expected = dict(EXPECTED_SROIE_STYLE, line_items=[{"description": "x"}])
         r = evaluate_record(
-            invoice_id="008", prediction=PRED_PERFECT, expected=expected, ocr_text=OCR_SAMPLE,
+            invoice_id="008",
+            prediction=PRED_PERFECT,
+            expected=expected,
+            ocr_text=OCR_SAMPLE,
         )
         assert "line_items" not in r.fields_evaluated
 
 
 # ---------- aggregate ----------
+
 
 class TestAggregate:
     def test_empty(self) -> None:
@@ -423,7 +450,9 @@ class TestAggregate:
     def test_all_perfect(self) -> None:
         results = [
             evaluate_record(
-                invoice_id=str(i), prediction=PRED_PERFECT, expected=EXPECTED_SROIE_STYLE,
+                invoice_id=str(i),
+                prediction=PRED_PERFECT,
+                expected=EXPECTED_SROIE_STYLE,
                 ocr_text=OCR_SAMPLE,
             )
             for i in range(10)
@@ -441,14 +470,22 @@ class TestAggregate:
     def test_half_record_wrong_one_field(self) -> None:
         # 5 perfect, 5 with wrong total
         good = [
-            evaluate_record(invoice_id=f"g{i}", prediction=PRED_PERFECT,
-                            expected=EXPECTED_SROIE_STYLE, ocr_text=OCR_SAMPLE)
+            evaluate_record(
+                invoice_id=f"g{i}",
+                prediction=PRED_PERFECT,
+                expected=EXPECTED_SROIE_STYLE,
+                ocr_text=OCR_SAMPLE,
+            )
             for i in range(5)
         ]
         bad_pred = dict(PRED_PERFECT, total_amount=999.0)
         bad = [
-            evaluate_record(invoice_id=f"b{i}", prediction=bad_pred,
-                            expected=EXPECTED_SROIE_STYLE, ocr_text=OCR_SAMPLE)
+            evaluate_record(
+                invoice_id=f"b{i}",
+                prediction=bad_pred,
+                expected=EXPECTED_SROIE_STYLE,
+                ocr_text=OCR_SAMPLE,
+            )
             for i in range(5)
         ]
         am = aggregate(good + bad)
@@ -467,8 +504,12 @@ class TestAggregate:
         # Every prediction has currency=EUR (ungrounded). 5 scalar predictions per record.
         bad_pred = dict(PRED_PERFECT, currency="EUR")
         results = [
-            evaluate_record(invoice_id=str(i), prediction=bad_pred,
-                            expected=EXPECTED_SROIE_STYLE, ocr_text=OCR_SAMPLE)
+            evaluate_record(
+                invoice_id=str(i),
+                prediction=bad_pred,
+                expected=EXPECTED_SROIE_STYLE,
+                ocr_text=OCR_SAMPLE,
+            )
             for i in range(10)
         ]
         am = aggregate(results)

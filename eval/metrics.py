@@ -58,6 +58,7 @@ def _normalize_vendor(s: str) -> str:
 
 # ---------- per-field comparators ----------
 
+
 def compare_vendor_name(pred: Any, expected: Any) -> bool:
     if pred is None and expected is None:
         return True
@@ -72,7 +73,9 @@ def compare_invoice_number(pred: Any, expected: Any) -> bool:
     if pred is None or expected is None:
         return False
     # IDs may have stylistic spacing differences — collapse all whitespace.
-    return _normalize_str(str(pred)).replace(" ", "") == _normalize_str(str(expected)).replace(" ", "")
+    return _normalize_str(str(pred)).replace(" ", "") == _normalize_str(str(expected)).replace(
+        " ", ""
+    )
 
 
 def compare_invoice_date(pred: Any, expected: Any) -> bool:
@@ -136,6 +139,7 @@ def field_match(field_name: str, pred: Any, expected: Any) -> bool:
 
 
 # ---------- schema validity ----------
+
 
 def is_schema_valid(raw: str | dict[str, Any] | None) -> bool:
     """True iff `raw` (string or dict) parses as JSON and validates as Invoice."""
@@ -241,17 +245,18 @@ def is_grounded(field_name: str, value: Any, ocr_text: str) -> bool:
 
 # ---------- record-level evaluation ----------
 
+
 @dataclass
 class RecordResult:
     """Per-record scoring output. Aggregated by `aggregate()`."""
 
     invoice_id: str
     schema_valid: bool
-    fields_evaluated: list[str]            # keys present in expected_json (intersected w/ COMPARATORS)
-    field_matches: dict[str, bool]         # per-field correctness (only for evaluated fields)
-    fields_predicted: list[str]            # scalar fields where prediction was non-null
-    hallucinated_fields: list[str]         # subset of fields_predicted not findable in OCR text
-    fully_correct: bool                    # every evaluated field matched (and at least 1 was evaluated)
+    fields_evaluated: list[str]  # keys present in expected_json (intersected w/ COMPARATORS)
+    field_matches: dict[str, bool]  # per-field correctness (only for evaluated fields)
+    fields_predicted: list[str]  # scalar fields where prediction was non-null
+    hallucinated_fields: list[str]  # subset of fields_predicted not findable in OCR text
+    fully_correct: bool  # every evaluated field matched (and at least 1 was evaluated)
 
 
 def evaluate_record(
@@ -321,6 +326,7 @@ def evaluate_record(
 
 # ---------- aggregation ----------
 
+
 @dataclass
 class FieldStats:
     correct: int
@@ -336,14 +342,14 @@ class AggregateMetrics:
     """Predictor-level summary. Serializable via dataclasses.asdict for the report."""
 
     n_records: int
-    schema_validity: float                          # records with schema-valid output / n_records
+    schema_validity: float  # records with schema-valid output / n_records
     field_accuracy: dict[str, FieldStats] = field(default_factory=dict)
-    field_accuracy_macro: float = 0.0               # mean of per-field accuracies (table column)
-    field_accuracy_micro: float = 0.0               # sum(correct) / sum(total) across fields
-    record_accuracy: float = 0.0                    # records where every evaluated field matched
-    hallucination_rate: float = 0.0                 # ungrounded predictions / total non-null predictions
-    n_predictions: int = 0                          # total non-null scalar predictions
-    n_hallucinations: int = 0                       # subset that weren't grounded
+    field_accuracy_macro: float = 0.0  # mean of per-field accuracies (table column)
+    field_accuracy_micro: float = 0.0  # sum(correct) / sum(total) across fields
+    record_accuracy: float = 0.0  # records where every evaluated field matched
+    hallucination_rate: float = 0.0  # ungrounded predictions / total non-null predictions
+    n_predictions: int = 0  # total non-null scalar predictions
+    n_hallucinations: int = 0  # subset that weren't grounded
 
 
 def aggregate(results: list[RecordResult]) -> AggregateMetrics:

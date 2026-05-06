@@ -15,9 +15,11 @@ class VLLMConfig:
     model: str
     host: str
     port: int
-    max_model_len: int           # Token cap. Our inputs are <500 tokens, output <500 — 4096 is generous.
-    gpu_memory_utilization: float  # Fraction of GPU mem given to weights + KV cache. 0.85 leaves headroom.
-    dtype: str                   # 'auto' picks bfloat16 on Ampere+, float16 elsewhere.
+    max_model_len: int  # Token cap. Our inputs are <500 tokens, output <500 — 4096 is generous.
+    gpu_memory_utilization: (
+        float  # Fraction of GPU mem given to weights + KV cache. 0.85 leaves headroom.
+    )
+    dtype: str  # 'auto' picks bfloat16 on Ampere+, float16 elsewhere.
 
     @property
     def base_url(self) -> str:

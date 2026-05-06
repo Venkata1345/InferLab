@@ -5,6 +5,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+.coverage
 .venv/
 venv/
 build/
@@ -36,6 +37,9 @@ hf_cache/
 
 # Claude Code session settings (user-specific)
 .claude/
+
+# Local notebooks may contain secrets / experimental cells — never commit.
+*.ipynb
 
 # OS
 .DS_Store

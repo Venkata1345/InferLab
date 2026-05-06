@@ -15,7 +15,7 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +35,7 @@ class BenchResult:
     n_success: int
     n_errors: int
     wall_clock_s: float
-    throughput_rps: float                          # successful requests / wall_clock_s
+    throughput_rps: float  # successful requests / wall_clock_s
     latency_ms: dict[str, float] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -72,9 +72,7 @@ def load_invoices(eval_path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def sample_workload(
-    invoices: list[dict[str, Any]], n: int, *, seed: int
-) -> list[dict[str, Any]]:
+def sample_workload(invoices: list[dict[str, Any]], n: int, *, seed: int) -> list[dict[str, Any]]:
     """Sample n invoices WITH replacement (deterministic by seed). Replacement is
     intentional — at high concurrency we may want to exceed the eval set size."""
     rng = random.Random(seed)
@@ -101,10 +99,7 @@ def run_bench(
 
     t_start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=concurrency) as ex:
-        futures = [
-            ex.submit(predictor.extract, w["invoice_id"], w["input_text"])
-            for w in workload
-        ]
+        futures = [ex.submit(predictor.extract, w["invoice_id"], w["input_text"]) for w in workload]
         for fut in tqdm(
             as_completed(futures),
             total=len(futures),
@@ -131,7 +126,7 @@ def run_bench(
         throughput_rps=throughput,
         latency_ms=latency_stats(latencies),
         metadata={
-            "timestamp_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "seed": seed,
             "first_5_errors": errors[:5],
         },
@@ -164,9 +159,7 @@ def run_sweep(
     paths: list[Path] = []
     for c in concurrencies:
         print(f"\n>> bench {predictor.name} c={c}, n={n_requests}", file=sys.stderr)
-        result = run_bench(
-            predictor, invoices, concurrency=c, n_requests=n_requests, seed=seed
-        )
+        result = run_bench(predictor, invoices, concurrency=c, n_requests=n_requests, seed=seed)
         path = write_result(result, results_dir)
         paths.append(path)
         _print_summary(result)

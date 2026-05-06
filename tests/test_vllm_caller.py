@@ -4,8 +4,6 @@ Real correctness validation happens via `python -m cli.main eval vllm --limit 5`
 against a live vLLM server on Colab (step 6 sanity check).
 """
 
-import os
-
 import pytest
 
 from baselines.vllm_caller import (

@@ -10,7 +10,7 @@ Output: eval/results/<predictor.name>.json with per-record records + aggregates.
 import json
 import sys
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -50,7 +50,7 @@ def latency_stats(latencies_ms: list[float]) -> dict[str, float]:
 def _metrics_to_dict(am: AggregateMetrics) -> dict[str, Any]:
     """asdict, plus inject the .accuracy property since asdict drops it."""
     d = asdict(am)
-    for fname, stats in d.get("field_accuracy", {}).items():
+    for _fname, stats in d.get("field_accuracy", {}).items():
         total = stats["total"]
         stats["accuracy"] = stats["correct"] / total if total else 0.0
     return d
@@ -58,9 +58,7 @@ def _metrics_to_dict(am: AggregateMetrics) -> dict[str, Any]:
 
 def _load_eval(path: Path, limit: int | None) -> list[dict[str, Any]]:
     if not path.exists():
-        raise FileNotFoundError(
-            f"{path} not found. Run `python -m data.build_dataset` first."
-        )
+        raise FileNotFoundError(f"{path} not found. Run `python -m data.build_dataset` first.")
     rows: list[dict[str, Any]] = []
     with path.open(encoding="utf-8") as f:
         for line in f:
@@ -144,7 +142,7 @@ def run_eval(
         "latency_ms": lat_stats,
         "cost": cost_block,
         "run_metadata": {
-            "timestamp_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "eval_path": str(eval_path),
             "limit": limit,
         },
@@ -176,7 +174,9 @@ def _print_summary(
     print(f"  field acc (macro): {am.field_accuracy_macro:.1%}")
     for fname, stats in am.field_accuracy.items():
         print(f"    - {fname:<16} {stats.correct}/{stats.total} ({stats.accuracy:.1%})")
-    print(f"  hallucination:     {am.n_hallucinations}/{am.n_predictions} ({am.hallucination_rate:.1%})")
+    print(
+        f"  hallucination:     {am.n_hallucinations}/{am.n_predictions} ({am.hallucination_rate:.1%})"
+    )
     if lat.get("n", 0):
         print(
             f"  latency (ms):      p50={lat['p50']:.0f}  p95={lat['p95']:.0f}  "

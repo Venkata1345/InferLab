@@ -100,8 +100,7 @@ class TestParseBoxCsv:
     def test_strips_bbox_keeps_text_in_order(self, tmp_path: Path) -> None:
         csv = tmp_path / "0.csv"
         csv.write_text(
-            "72,25,326,25,326,64,72,64,TAN WOON YANN\n"
-            "50,82,440,82,440,121,50,121,BOOK SDN BND\n",
+            "72,25,326,25,326,64,72,64,TAN WOON YANN\n50,82,440,82,440,121,50,121,BOOK SDN BND\n",
             encoding="utf-8",
         )
         assert parse_box_csv(csv) == "TAN WOON YANN\nBOOK SDN BND"
@@ -118,10 +117,7 @@ class TestParseBoxCsv:
     def test_skips_blank_and_malformed_lines(self, tmp_path: Path) -> None:
         csv = tmp_path / "0.csv"
         csv.write_text(
-            "1,2,3,4,5,6,7,8,GOOD\n"
-            "\n"
-            "too,few,fields\n"
-            "1,2,3,4,5,6,7,8,ALSO GOOD\n",
+            "1,2,3,4,5,6,7,8,GOOD\n\ntoo,few,fields\n1,2,3,4,5,6,7,8,ALSO GOOD\n",
             encoding="utf-8",
         )
         assert parse_box_csv(csv) == "GOOD\nALSO GOOD"
