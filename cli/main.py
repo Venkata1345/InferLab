@@ -11,20 +11,26 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-def _build_predictor(name: str, model: str | None):
+def _build_predictor(name: str, model: str | None, name_override: str | None = None):
     if name == "openai":
         from baselines.openai_caller import DEFAULT_MODEL, OpenAIPredictor
 
-        return OpenAIPredictor(model=model or DEFAULT_MODEL)
-    if name == "gemini":
+        p = OpenAIPredictor(model=model or DEFAULT_MODEL)
+    elif name == "gemini":
         from baselines.gemini_caller import DEFAULT_MODEL, GeminiPredictor
 
-        return GeminiPredictor(model=model or DEFAULT_MODEL)
-    if name == "vllm":
+        p = GeminiPredictor(model=model or DEFAULT_MODEL)
+    elif name == "vllm":
         from baselines.vllm_caller import DEFAULT_MODEL, VLLMPredictor
 
-        return VLLMPredictor(model=model or DEFAULT_MODEL)
-    raise SystemExit(f"unknown predictor: {name}")
+        p = VLLMPredictor(model=model or DEFAULT_MODEL)
+    else:
+        raise SystemExit(f"unknown predictor: {name}")
+    # Allow tagging a run with a custom name so two configs of the same model
+    # produce distinguishable results filenames (e.g. vllm-Qwen-3B-serial vs -vanilla).
+    if name_override:
+        p.name = name_override
+    return p
 
 
 def cmd_eval(args: argparse.Namespace) -> int:
@@ -44,7 +50,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
 def cmd_bench(args: argparse.Namespace) -> int:
     from bench.load import DEFAULT_EVAL_PATH, DEFAULT_RESULTS_DIR, run_sweep
 
-    predictor = _build_predictor(args.predictor, args.model)
+    predictor = _build_predictor(args.predictor, args.model, args.predictor_name)
     try:
         concurrencies = [int(c) for c in args.concurrency.split(",")]
     except ValueError as e:
@@ -115,6 +121,13 @@ def build_parser() -> argparse.ArgumentParser:
     pb.add_argument("--seed", type=int, default=42)
     pb.add_argument("--eval-path", default=None)
     pb.add_argument("--results-dir", default=None)
+    pb.add_argument(
+        "--predictor-name",
+        default=None,
+        help="Override the predictor's auto-derived name (used as the results filename "
+        "stem). Useful for tagging two configs of the same model — e.g. "
+        "--predictor-name vllm-Qwen-3B-serial vs -vanilla.",
+    )
     pb.set_defaults(func=cmd_bench)
 
     px = sub.add_parser("extract", help="Extract one invoice via vLLM endpoint (step 7)")

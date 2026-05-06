@@ -66,6 +66,16 @@ class TestBuildParser:
         assert args.concurrency == "1,4,8,16,32"
         assert args.n_requests == 100
 
+    def test_bench_predictor_name_override(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["bench", "vllm", "--predictor-name", "vllm-Qwen-3B-serial"])
+        assert args.predictor_name == "vllm-Qwen-3B-serial"
+
+    def test_bench_predictor_name_default_none(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["bench", "vllm"])
+        assert args.predictor_name is None
+
     def test_compare_gpu_dollar_default(self) -> None:
         parser = build_parser()
         args = parser.parse_args(["compare"])
