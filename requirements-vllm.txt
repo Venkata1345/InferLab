@@ -1,0 +1,7 @@
+# GPU-side dependencies (Colab / Linux + CUDA only)
+# Install with: pip install -r requirements-vllm.txt
+-r requirements.txt
+
+vllm>=0.6.0
+fastapi>=0.115
+uvicorn>=0.30

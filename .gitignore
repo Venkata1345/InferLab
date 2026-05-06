@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Environment
+.env
+
+# Data (raw downloads + processed; rebuildable)
+data/raw/
+data/processed/
+
+# Generated results
+bench/results/*.json
+bench/results/*.png
+eval/results/*.log
+report/output/
+# eval/results/*.json IS committed — those are the comparison-table source.
+
+# Model weights / caches
+*.bin
+*.safetensors
+.cache/
+hf_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code session settings (user-specific)
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
