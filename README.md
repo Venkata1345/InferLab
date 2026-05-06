@@ -47,14 +47,21 @@ flowchart LR
 > Eval set: 125 invoices from SROIE 2019 (deterministic 80/20 split, seed 42).
 > SROIE ground truth covers vendor / date / total only — field accuracy is on those three fields.
 
-| Predictor                 | Schema Valid | Field Acc (macro) | Record Acc | p50 lat  | p99 lat  | Throughput @16   | $/1k        |
-|---------------------------|--------------|-------------------|------------|----------|----------|------------------|-------------|
-| vLLM Qwen 2.5 3B-Instruct | 100.0%       | 87.7%             | 66.4%      | **1.2 s**| **4.1 s**| **7.95 req/s** ¹ | **$0.017** ² |
-| openai-gpt-4o-mini        | 100.0%       | 96.8%             | 90.4%      | 2.4 s    | 33.8 s   | n/a (API)        | $0.225      |
-| gemini-2.5-flash-lite     | 100.0%       | 95.7%             | 87.2%      | 1.5 s    | 8.7 s    | n/a (API)        | $0.163      |
+| Predictor                       | Schema Valid | Field Acc | Record Acc | p50 lat | p99 lat | Throughput          | $/1k       |
+|---------------------------------|--------------|-----------|------------|---------|---------|---------------------|------------|
+| `vllm-Qwen_Qwen2.5-3B-Instruct` | 100.0%       | 87.7%     | 66.4%      | 1.15 s  | 4.15 s  | 7.95 req/s @ c=16 ¹ | $0.052 ²   |
+| `gemini-gemini-2.5-flash-lite`  | 100.0%       | 95.7%     | 87.2%      | 1.53 s  | 8.70 s  | 2.62 req/s @ c=4 ³  | $0.163 ⁴   |
+| `openai-gpt-4o-mini`            | 100.0%       | 96.8%     | 90.4%      | 2.36 s  | 33.83 s | 1.21 req/s @ c=4 ³  | $0.225 ⁴   |
 
-¹ Single Colab L4 (24 GB), 100-request closed-loop bench. Continuous batching: p50 latency stays ~1.3–1.6 s across c=1→32 (concurrency 32× → tail latency degrades 5%).
-² L4 GPU at $0.50/hr ÷ 28,620 invoices/hr at c=16. Frontier-API $/1k is direct token cost (gpt-4o-mini, gemini-flash-lite pricing as of 2026-05).
+¹ vLLM bench is a 100-request closed-loop sweep at c=1,4,8,16,32 on a single Colab GPU. Continuous batching keeps p50 latency at 1.3–1.6 s across the entire sweep — concurrency goes 32×, tail latency degrades 5%. See `bench/results/vllm-Qwen_Qwen2.5-3B-Instruct_c*.json` for the full sweep.
+
+² $/1k = GPU $/hr ÷ throughput. Headline figure assumes **~$1.50/hr** (e.g. L4 on a major cloud pay-as-you-go, or A100 spot). Re-run `inferlab compare --gpu-dollar-per-hr <X>` for your environment. The optimistic Colab-Pro-bounded estimate is ~$0.017.
+
+³ API benches capped at concurrency 4 to stay rate-limit safe. Each API's actual ceiling is much higher with parallel clients — these numbers are conservative.
+
+⁴ Frontier-API $/1k is direct token cost from each predictor's `eval/results/*.json` cost block (gpt-4o-mini and gemini-flash-lite pricing snapshotted 2026-05; sources in `eval/cost.py`).
+
+Regenerate this table from raw results: `python -m cli.main compare`. It writes both Markdown (drop-in for this README) and JSON (for downstream tools) to `report/output/comparison.{md,json}`.
 
 Per-field breakdown:
 
