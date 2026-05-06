@@ -1,0 +1,23 @@
+{
+  "predictor": "openai-gpt-4o-mini",
+  "concurrency": 4,
+  "n_requests": 50,
+  "n_success": 50,
+  "n_errors": 0,
+  "wall_clock_s": 41.29660155700003,
+  "throughput_rps": 1.2107533819940854,
+  "latency_ms": {
+    "n": 50,
+    "min": 1486.9391800002631,
+    "p50": 2586.0146499999246,
+    "p95": 6571.338263000143,
+    "p99": 6977.205082000182,
+    "max": 6977.205082000182,
+    "mean": 3134.177848060044
+  },
+  "metadata": {
+    "timestamp_utc": "2026-05-06T03:16:50.219936Z",
+    "seed": 42,
+    "first_5_errors": []
+  }
+}

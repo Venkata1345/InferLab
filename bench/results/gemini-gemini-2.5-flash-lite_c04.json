@@ -1,0 +1,23 @@
+{
+  "predictor": "gemini-gemini-2.5-flash-lite",
+  "concurrency": 4,
+  "n_requests": 50,
+  "n_success": 50,
+  "n_errors": 0,
+  "wall_clock_s": 19.070990328000335,
+  "throughput_rps": 2.6217830925428762,
+  "latency_ms": {
+    "n": 50,
+    "min": 895.7980780005528,
+    "p50": 1323.1869430001097,
+    "p95": 2087.315406000016,
+    "p99": 2642.211047999808,
+    "max": 2642.211047999808,
+    "mean": 1452.5437010800122
+  },
+  "metadata": {
+    "timestamp_utc": "2026-05-06T03:17:11.019525Z",
+    "seed": 42,
+    "first_5_errors": []
+  }
+}

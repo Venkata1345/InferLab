@@ -1,0 +1,23 @@
+{
+  "predictor": "vllm-Qwen_Qwen2.5-3B-Instruct",
+  "concurrency": 16,
+  "n_requests": 100,
+  "n_success": 100,
+  "n_errors": 0,
+  "wall_clock_s": 12.585877726000035,
+  "throughput_rps": 7.945413278044087,
+  "latency_ms": {
+    "n": 100,
+    "min": 790.9682720001001,
+    "p50": 1417.9561030000514,
+    "p95": 3310.855004000132,
+    "p99": 4368.142425999849,
+    "max": 4460.343354000088,
+    "mean": 1659.0949738400423
+  },
+  "metadata": {
+    "timestamp_utc": "2026-05-06T03:05:50.586357Z",
+    "seed": 42,
+    "first_5_errors": []
+  }
+}

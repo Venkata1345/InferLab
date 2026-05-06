@@ -1,0 +1,114 @@
+[
+  {
+    "name": "vllm-Qwen_Qwen2.5-3B-Instruct",
+    "schema_validity": 1.0,
+    "field_accuracy_macro": 0.8773333333333334,
+    "record_accuracy": 0.664,
+    "p50_latency_ms": 1151.2453220002499,
+    "p99_latency_ms": 4146.824050000305,
+    "throughput_rps_at_target": 7.945413278044087,
+    "target_concurrency": 16,
+    "cost_per_1k_usd": 0.052441157191666816,
+    "cost_basis": "GPU $1.50/hr / 7.95 req/s @ c=16",
+    "details": {
+      "field_accuracy": {
+        "vendor_name": {
+          "correct": 108,
+          "total": 125,
+          "accuracy": 0.864
+        },
+        "invoice_date": {
+          "correct": 116,
+          "total": 125,
+          "accuracy": 0.928
+        },
+        "total_amount": {
+          "correct": 105,
+          "total": 125,
+          "accuracy": 0.84
+        }
+      },
+      "hallucination_rate": 0.06208053691275168,
+      "n_eval_records": 125,
+      "bench_concurrencies": [
+        1,
+        4,
+        8,
+        16,
+        32
+      ]
+    }
+  },
+  {
+    "name": "gemini-gemini-2.5-flash-lite",
+    "schema_validity": 1.0,
+    "field_accuracy_macro": 0.9573333333333333,
+    "record_accuracy": 0.872,
+    "p50_latency_ms": 1532.9152999911457,
+    "p99_latency_ms": 8701.034199912101,
+    "throughput_rps_at_target": 2.6217830925428762,
+    "target_concurrency": 4,
+    "cost_per_1k_usd": 0.16315440000000003,
+    "cost_basis": "token cost @ 2026-05",
+    "details": {
+      "field_accuracy": {
+        "vendor_name": {
+          "correct": 111,
+          "total": 125,
+          "accuracy": 0.888
+        },
+        "invoice_date": {
+          "correct": 124,
+          "total": 125,
+          "accuracy": 0.992
+        },
+        "total_amount": {
+          "correct": 124,
+          "total": 125,
+          "accuracy": 0.992
+        }
+      },
+      "hallucination_rate": 0.056179775280898875,
+      "n_eval_records": 125,
+      "bench_concurrencies": [
+        4
+      ]
+    }
+  },
+  {
+    "name": "openai-gpt-4o-mini",
+    "schema_validity": 1.0,
+    "field_accuracy_macro": 0.968,
+    "record_accuracy": 0.904,
+    "p50_latency_ms": 2355.0775999901816,
+    "p99_latency_ms": 33834.0501000057,
+    "throughput_rps_at_target": 1.2107533819940854,
+    "target_concurrency": 4,
+    "cost_per_1k_usd": 0.22524239999999995,
+    "cost_basis": "token cost @ 2026-05",
+    "details": {
+      "field_accuracy": {
+        "vendor_name": {
+          "correct": 117,
+          "total": 125,
+          "accuracy": 0.936
+        },
+        "invoice_date": {
+          "correct": 124,
+          "total": 125,
+          "accuracy": 0.992
+        },
+        "total_amount": {
+          "correct": 122,
+          "total": 125,
+          "accuracy": 0.976
+        }
+      },
+      "hallucination_rate": 0.0532258064516129,
+      "n_eval_records": 125,
+      "bench_concurrencies": [
+        4
+      ]
+    }
+  }
+]
