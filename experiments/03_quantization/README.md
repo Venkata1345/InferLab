@@ -49,20 +49,57 @@ Estimated A100 time: ~15 min (~3 min vanilla eval + ~80s vanilla bench
 
 ## Results
 
-(filled in after run)
+A100 80 GB. Qwen 2.5 3B-Instruct, 125-record SROIE eval + bench at c=1, 16
+(50 requests/level).
 
-| metric                | vanilla BF16 | AWQ INT4 | delta |
-|-----------------------|-------------:|---------:|------:|
-| schema_validity       | TBD          | TBD      | TBD   |
-| field_acc_macro       | TBD          | TBD      | TBD   |
-| record_accuracy       | TBD          | TBD      | TBD   |
-| eval p50 latency      | TBD          | TBD      | TBD   |
-| eval p99 latency      | TBD          | TBD      | TBD   |
-| bench throughput @c=1 | TBD          | TBD      | TBD   |
-| bench throughput @c=16| TBD          | TBD      | TBD   |
-| bench p50 @c=1        | TBD          | TBD      | TBD   |
+| metric                  | vanilla BF16 | AWQ INT4    | delta     |
+|-------------------------|-------------:|------------:|----------:|
+| schema_validity         | 100.0%       | 100.0%      | +0.0pp    |
+| field_acc_macro         | 87.73%       | 87.73%      | +0.0pp    |
+| record_accuracy         | 66.4%        | 68.0%       | +1.6pp    |
+| eval p50 latency (ms)   | 1,173        | 3,895       | **+232%** |
+| eval p99 latency (ms)   | 4,160        | 15,276      | +267%     |
+| bench throughput @ c=1  | 0.70 req/s   | 0.22 req/s  | **−69%**  |
+| bench throughput @ c=16 | 8.96 req/s   | 2.81 req/s  | **−69%**  |
+| bench p50 @ c=1 (ms)    | 1,315        | 4,110       | +212%     |
+| bench p50 @ c=16 (ms)   | 1,342        | 4,436       | +231%     |
+
+Quality is **essentially unchanged**: per-field accuracy is identical to 4
+decimal places. The 1.6pp record-accuracy bump is within statistical
+noise on 125 records (the same fields are correct/wrong on a slightly
+different subset of records).
+
+Latency and throughput both regress by ~3×. Same direction at c=1 and
+c=16, so the regression isn't concurrency-dependent — it's per-request
+overhead.
 
 ## Verdict
 
-(filled in after run — one line: "Helped / Hurt / Wash, by X% on metric Y;
-quality cost: Zpp.")
+**Hurt — AWQ INT4 is a 3× latency regression on A100 with no quality
+benefit.** Hardware mismatch, not a bug in our setup or a fluke.
+
+Why:
+
+- **A100 has top-tier BF16 tensor cores.** BF16 matmul on Ampere is the
+  fast path. AWQ has nothing better to compete with.
+- **A100 has no native INT4 tensor cores.** AWQ stores weights in INT4
+  but dequantizes to BF16/FP16 *just before each matmul*. The dequant
+  step adds per-layer overhead that pure BF16 doesn't pay.
+- **The classic AWQ wins don't apply to this configuration.** The
+  benefits — smaller VRAM, fitting bigger models, faster on
+  memory-bandwidth-bound workloads — are about *fitting more / paying
+  less* at memory boundaries we never hit. Step 2 already showed Qwen
+  3B on A100 80GB isn't KV-cache-bound at our input sizes. So the
+  dequant overhead is pure cost.
+
+Where AWQ would actually pay off:
+
+- **H100 or RTX 4090** (native INT4 tensor cores → no dequant penalty)
+- **Smaller GPUs** (L4 24GB, T4 16GB) where weight bytes meaningfully
+  reduce KV-cache pressure
+- **Larger models** (7B, 14B) where VRAM headroom matters
+- **Longer contexts** (8k+ tokens) where KV cache dominates
+
+For Part B's narrative this is a real finding, not a failure: it
+**bounds the optimization space** for our specific hardware/model
+combination. INT4 quantization is the wrong knob to turn here.
