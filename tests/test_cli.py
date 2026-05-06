@@ -76,6 +76,16 @@ class TestBuildParser:
         args = parser.parse_args(["bench", "vllm"])
         assert args.predictor_name is None
 
+    def test_eval_predictor_name_override(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["eval", "vllm", "--predictor-name", "vllm-Qwen-3B-AWQ"])
+        assert args.predictor_name == "vllm-Qwen-3B-AWQ"
+
+    def test_eval_predictor_name_default_none(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["eval", "vllm"])
+        assert args.predictor_name is None
+
     def test_compare_gpu_dollar_default(self) -> None:
         parser = build_parser()
         args = parser.parse_args(["compare"])

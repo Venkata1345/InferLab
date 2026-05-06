@@ -63,7 +63,7 @@ def plot_max_concurrency(rows: list[dict]) -> Path:
         for r in rows
     ]
     ax.plot(xs, ys, marker="o", linewidth=2, markersize=10, color="C1")
-    for x, y in zip(xs, ys):
+    for x, y in zip(xs, ys, strict=True):
         ax.annotate(f"~{y:.0f}", (x, y), textcoords="offset points", xytext=(8, 6))
     ax.set_xlabel("Avg input tokens per request")
     ax.set_ylabel("Estimated max concurrency before cache OOM")

@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
+import contextlib
 import json
 import re
 import threading
@@ -64,11 +65,9 @@ def parse_metrics(prom_text: str) -> dict[str, float]:
         m = _METRIC_LINE.match(line)
         if not m or m.group("name") not in WANTED_METRICS:
             continue
-        try:
+        with contextlib.suppress(ValueError):
             # Take the LAST value if the metric appears multiple times (different labels).
             out[m.group("name")] = float(m.group("value"))
-        except ValueError:
-            pass
     return out
 
 

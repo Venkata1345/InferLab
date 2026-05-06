@@ -36,7 +36,7 @@ def _build_predictor(name: str, model: str | None, name_override: str | None = N
 def cmd_eval(args: argparse.Namespace) -> int:
     from eval.runner import DEFAULT_EVAL_PATH, DEFAULT_RESULTS_DIR, run_eval
 
-    predictor = _build_predictor(args.predictor, args.model)
+    predictor = _build_predictor(args.predictor, args.model, args.predictor_name)
     eval_path = Path(args.eval_path) if args.eval_path else DEFAULT_EVAL_PATH
     results_dir = Path(args.results_dir) if args.results_dir else DEFAULT_RESULTS_DIR
     run_eval(predictor, eval_path=eval_path, results_dir=results_dir, limit=args.limit)
@@ -107,6 +107,12 @@ def build_parser() -> argparse.ArgumentParser:
     pe.add_argument("--limit", type=int, default=None, help="Run only the first N records")
     pe.add_argument("--eval-path", default=None, help="Override path to eval.jsonl")
     pe.add_argument("--results-dir", default=None, help="Override eval/results/ output dir")
+    pe.add_argument(
+        "--predictor-name",
+        default=None,
+        help="Override the predictor's auto-derived name (used as the results filename "
+        "stem). Useful for tagging two configs of the same model.",
+    )
     pe.set_defaults(func=cmd_eval)
 
     pb = sub.add_parser("bench", help="Run load benchmark (concurrency sweep)")
