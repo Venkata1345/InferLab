@@ -50,14 +50,15 @@ wait_for_server() {
 
 run_config() {
     local cfg_path="$1"
-    local tag="$2"            # e.g. "vanilla" or "AWQ"
-    local boot_timeout="${3:-300}"
+    local tag="$2"                            # e.g. "vanilla" or "AWQ"
+    local model_id="$3"                       # HF model id — must match what the server loads
+    local boot_timeout="${4:-300}"
     local log="$EXP_DIR/vllm-$tag.log"
     local pred_name="vllm-Qwen-3B-$tag"
 
     echo
     echo "=========================================="
-    echo ">> Config: $tag  ($cfg_path)"
+    echo ">> Config: $tag  ($cfg_path)  model=$model_id"
     echo "=========================================="
 
     stop_vllm
@@ -65,10 +66,11 @@ run_config() {
     wait_for_server "$boot_timeout"
 
     echo ">> Eval ($pred_name)"
-    python -m cli.main eval vllm --predictor-name "$pred_name"
+    python -m cli.main eval vllm --model "$model_id" --predictor-name "$pred_name"
 
     echo ">> Bench ($pred_name) at c=1, 16"
     python -m cli.main bench vllm \
+        --model "$model_id" \
         --predictor-name "$pred_name" \
         --concurrency 1,16 \
         --n-requests 50
@@ -76,10 +78,10 @@ run_config() {
 
 # Re-bench vanilla on this hardware so we have a clean apples-to-apples baseline
 # (step 1's vanilla bench JSONs were lost in a Colab kernel reset).
-run_config "service/configs/vanilla.sh" "vanilla" 180
+run_config "service/configs/vanilla.sh" "vanilla" "Qwen/Qwen2.5-3B-Instruct" 180
 
 # AWQ — first-run weight download takes ~2 min for the 1.5 GB shards
-run_config "service/configs/awq.sh" "AWQ" 300
+run_config "service/configs/awq.sh" "AWQ" "Qwen/Qwen2.5-3B-Instruct-AWQ" 300
 
 stop_vllm
 
