@@ -61,11 +61,15 @@ def collect() -> dict:
         for c in CONCURRENCIES:
             bd = load_bench(tag, c)
             if bd:
+                lat = bd.get("latency_ms", {})
+                # When all requests fail, latency_ms is just {"n": 0} — no percentiles.
                 bench_summary[f"c{c}"] = {
                     "throughput_rps": bd["throughput_rps"],
-                    "p50_ms": bd["latency_ms"]["p50"],
-                    "p99_ms": bd["latency_ms"]["p99"],
-                    "n_errors": bd["n_errors"],
+                    "p50_ms": lat.get("p50"),
+                    "p99_ms": lat.get("p99"),
+                    "n_success": bd.get("n_success", 0),
+                    "n_errors": bd.get("n_errors", 0),
+                    "first_errors": bd.get("metadata", {}).get("first_5_errors", []),
                 }
         out[tag] = {"eval": eval_summary, "bench": bench_summary}
     return out
