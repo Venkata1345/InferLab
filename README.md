@@ -47,13 +47,14 @@ flowchart LR
 > Eval set: 125 invoices from SROIE 2019 (deterministic 80/20 split, seed 42).
 > SROIE ground truth covers vendor / date / total only — field accuracy is on those three fields.
 
-| Predictor                 | Schema Valid | Field Acc (macro) | Record Acc | p50 lat  | p99 lat  | Throughput @16 | $/1k          |
-|---------------------------|--------------|-------------------|------------|----------|----------|----------------|---------------|
-| vLLM Qwen 2.5 3B-Instruct | 100.0%       | 87.7%             | 66.4%      | **1.2 s**| **4.1 s**| TBD (step 8)   | self-hosted ¹ |
-| openai-gpt-4o-mini        | 100.0%       | 96.8%             | 90.4%      | 2.4 s    | 33.8 s   | n/a (API)      | $0.225        |
-| gemini-2.5-flash-lite     | 100.0%       | 95.7%             | 87.2%      | 1.5 s    | 8.7 s    | n/a (API)      | $0.163        |
+| Predictor                 | Schema Valid | Field Acc (macro) | Record Acc | p50 lat  | p99 lat  | Throughput @16   | $/1k        |
+|---------------------------|--------------|-------------------|------------|----------|----------|------------------|-------------|
+| vLLM Qwen 2.5 3B-Instruct | 100.0%       | 87.7%             | 66.4%      | **1.2 s**| **4.1 s**| **7.95 req/s** ¹ | **$0.017** ² |
+| openai-gpt-4o-mini        | 100.0%       | 96.8%             | 90.4%      | 2.4 s    | 33.8 s   | n/a (API)        | $0.225      |
+| gemini-2.5-flash-lite     | 100.0%       | 95.7%             | 87.2%      | 1.5 s    | 8.7 s    | n/a (API)        | $0.163      |
 
-¹ Compute cost-per-1k for vLLM is derived from GPU $/hr ÷ throughput, computed in step 9 once the load benchmark lands.
+¹ Single Colab L4 (24 GB), 100-request closed-loop bench. Continuous batching: p50 latency stays ~1.3–1.6 s across c=1→32 (concurrency 32× → tail latency degrades 5%).
+² L4 GPU at $0.50/hr ÷ 28,620 invoices/hr at c=16. Frontier-API $/1k is direct token cost (gpt-4o-mini, gemini-flash-lite pricing as of 2026-05).
 
 Per-field breakdown:
 
@@ -161,9 +162,22 @@ tests/       Unit tests for metrics, schema, data pipeline
 
 ## What's next: Part B
 
-- Continuous batching analysis: throughput vs concurrency curves, KV-cache utilization
-- AWQ / GPTQ quantization: 4-bit Qwen, latency + accuracy delta
-- Speculative decoding: draft model + acceptance rate
+The accuracy gap (vLLM 66% record acc vs 87-90% for frontier APIs) is the
+target. Optimizations to come, with eval re-runs after each:
+
+- **Continuous batching analysis** — measure GPU utilization + KV-cache
+  occupancy across concurrency. The c=16→32 efficiency drop (73% → 53%)
+  suggests we're hitting the L4's compute ceiling; nailing down whether
+  it's compute, memory bandwidth, or scheduler overhead would tell us
+  whether more concurrency is worth it.
+- **AWQ / GPTQ 4-bit quantization** — should cut weight-bytes 4× (Qwen 3B
+  6 GB → ~1.5 GB), opening ~6 GB more for KV cache → higher max
+  concurrency. Track accuracy delta on the 125-record eval.
+- **Speculative decoding** — draft model + Qwen 3B verifier. Track
+  acceptance rate and throughput delta.
+- **Larger / better-tuned model** — Qwen 2.5 7B on the same L4 (with
+  quant) is the right experiment if 3B's accuracy floor is the
+  blocker rather than the engineering.
 
 ## Limitations
 
