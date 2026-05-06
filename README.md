@@ -4,7 +4,7 @@ Self-hosted, latency-optimized inference service for structured invoice extracti
 Demonstrates inference engineering: vLLM serving, schema-constrained decoding,
 benchmarking against frontier APIs, and (Part B) quantization + speculative decoding.
 
-> **Status:** Part A — working baseline + first measurements. See [Part B](#whats-next-part-b) for upcoming optimizations.
+> **Status:** Parts A + B complete. Part B headline: only continuous batching helped on A100 (+12× throughput). AWQ INT4 and speculative decoding both *hurt* by 2–3× latency on this hardware — see [Part B: Optimization results](#part-b-optimization-results).
 
 ## Problem
 
@@ -70,6 +70,123 @@ Per-field breakdown:
 | vLLM Qwen 2.5 3B-Instruct | 86.4%       | 92.8%        | 84.0%        | 6.2%          |
 | openai-gpt-4o-mini        | 93.6%       | 99.2%        | 97.6%        | 5.3%          |
 | gemini-2.5-flash-lite     | 88.8%       | 99.2%        | 99.2%        | 5.6%          |
+
+## Part B: Optimization results
+
+Four inference optimizations measured against the same SROIE eval set
+and bench harness from Part A, in isolation. Hardware: **A100 80 GB**
+(Colab Pro+). Each experiment lives at `experiments/<NN>_<name>/` with
+its own README, run.sh, results.json, and verdict.
+
+> **Headline finding**: only continuous batching helped on this hardware.
+> The other two optimizations we tested (AWQ INT4, speculative decoding)
+> both *hurt* by 2–3× latency. **Why**: A100's BF16 tensor cores are so
+> capable that adding any complexity (INT4 dequant, draft model overhead)
+> costs more than it saves for a small (3B) model at our input lengths.
+> The optimizations would land differently on memory-bandwidth-bound or
+> compute-saturated configurations — see "What didn't work" below.
+
+### Pareto frontier — record accuracy vs $/1k invoices
+
+![Pareto frontier](report/output/figures/pareto_quality_vs_cost.png)
+
+| Config              | record_acc | $/1k    | throughput      | status     |
+|---------------------|-----------:|--------:|-----------------|------------|
+| `vLLM-vanilla`      | 66.4%      | $0.047  | 8.96 r/s @ c=16 | frontier   |
+| `vLLM-AWQ`          | 68.0% †    | $0.149  | 2.81 r/s @ c=16 | frontier † |
+| `gemini-flash-lite` | 87.2%      | $0.163  | 2.62 r/s @ c=4  | frontier   |
+| `gpt-4o-mini`       | 90.4%      | $0.225  | 1.21 r/s @ c=4  | frontier   |
+| `vLLM-spec-K4`      | 84.0% ‡    | $1.576  | 0.26 r/s @ c=1  | dominated  |
+
+† AWQ's 1.6pp record-accuracy advantage over vanilla is **within
+statistical noise on 125 records** — per-field accuracy is identical
+to four decimal places. AWQ's frontier position is marginal at best.
+
+‡ Spec-K4's record accuracy is on a 25-record subset (cheapest middle
+of the K curve). Spec dec is mathematically exact, so output matches
+vanilla on the same records — the 84.0% reflects subset-selection
+variance, not a quality shift.
+
+The Pareto frontier shape is **vLLM-vanilla → gemini-flash-lite →
+gpt-4o-mini**: each step up the quality axis costs roughly 3× more.
+Self-hosted Qwen 3B is the cheapest option (~3.4× cheaper than
+gemini-flash-lite); the frontier APIs buy higher accuracy at higher
+cost. Cost numbers assume **$1.50/hr GPU** for self-hosted; at Colab
+Pro shared-compute rates the self-hosted $/1k drops to ~$0.014.
+
+### Per-technique impact
+
+| Technique | Latency Δ | Throughput Δ | Quality Δ | Verdict |
+|---|---|---|---|---|
+| Continuous batching (vs serial `max_num_seqs=1`) | — | **+1104%** | +0.0pp | **Helped massively** — +12× throughput at c=16 |
+| AWQ INT4 quantization | **+230%** | −69% | +1.6pp † | **Hurt** — A100 has no native INT4 tensor cores; dequant overhead dominates with no offsetting savings |
+| Speculative decoding (K=4, draft=Qwen-0.5B) | **+191%** | −62% | +0.0pp ‡ | **Hurt** — draft model overhead exceeds acceptance benefit on A100; schema-constrained decoding may also lower acceptance rate |
+
+† Within statistical noise (see Pareto note above).
+‡ Mathematically exact.
+
+### What didn't work, and why
+
+**AWQ INT4 caused a 3× latency regression.**
+- A100 has top-tier BF16 tensor cores. AWQ INT4 weights have to be
+  dequantized to BF16 *just before each matmul* — there are no native
+  INT4 tensor cores on Ampere.
+- The expected wins (smaller VRAM, fitting bigger models, freeing KV
+  cache) require memory boundaries we don't hit. Step 2's KV cache
+  instrumentation showed Qwen 3B + 80 GB A100 + our input lengths
+  uses 0.2–0.5% of cache. Far from any pressure.
+- AWQ pays off on **H100 / RTX 4090** (native INT4 ops) or on
+  **smaller GPUs** where weight bytes meaningfully reduce KV-cache
+  pressure.
+
+**Speculative decoding caused a 2–3× latency regression at every K (2, 4, 8).**
+- The draft model's per-step cost exceeds the acceptance benefit. Spec
+  dec helps when the *target* is the bottleneck — typically because
+  weight reads dominate. On A100 + small target, target compute is so
+  cheap that draft overhead is pure cost.
+- **Monotonic worsening with K is the smoking gun**: if acceptance rate
+  were high enough to offset overhead, throughput would rise then plateau.
+  We see straight degradation, meaning the marginal accepted token
+  doesn't pay back its draft+verify cost across the entire K range.
+- Schema-constrained decoding may also lower acceptance rate — the draft
+  was trained on free-form outputs, not constrained ones.
+- Spec dec pays off on **larger target models** (7B+, where per-token
+  target cost is high enough to amortize draft overhead) or on
+  **memory-bandwidth-bound GPUs**.
+
+### Skipped from the original plan
+
+- **FP8 quantization**: deferred. After AWQ's 3× regression on A100, FP8
+  was unlikely to recover — same hardware-mismatch principle. vLLM's
+  FP8 support has known integration friction across versions; not worth
+  burning GPU time without a stronger hypothesis.
+- **Composed "InferLab Optimized" config (step 5)**: skipped because the
+  composable wins didn't materialize. Continuous batching is already on
+  by default in vanilla; AWQ and spec dec hurt; nothing to combine.
+- **KV cache instrumentation conclusions don't apply to A100 + Qwen 3B**.
+  The hypothesis ("cache-bound, quantization frees room") would have
+  been true on smaller hardware. Documented in [experiments/02_kv_cache/](experiments/02_kv_cache/) as a characterization, not a win.
+
+### Reproduce Part B
+
+Each experiment self-contained:
+
+```bash
+bash experiments/01_continuous_batching/run.sh   # ~25 min A100
+python experiments/02_kv_cache/run.py            # ~5 min (vLLM must be running)
+bash experiments/03_quantization/run.sh          # ~15 min A100
+bash experiments/04_speculative_decoding/run.sh  # ~10 min A100
+```
+
+Final analysis (no GPU):
+
+```bash
+python report/pareto.py --gpu-dollar-per-hr 1.50
+python report/per_technique.py
+```
+
+Outputs land in `report/output/`. Both scripts read `eval/results/*.json`
+and `bench/results/*.json` — no state hidden in the scripts.
 
 ## How to reproduce
 
@@ -167,24 +284,30 @@ cli/         `inferlab extract|bench|eval|compare` entry points
 tests/       Unit tests for metrics, schema, data pipeline
 ```
 
-## What's next: Part B
+## What's next
 
-The accuracy gap (vLLM 66% record acc vs 87-90% for frontier APIs) is the
-target. Optimizations to come, with eval re-runs after each:
+Part B's negative findings (AWQ, spec dec hurt on A100) point at specific
+hardware/model regimes worth testing in a Part C:
 
-- **Continuous batching analysis** — measure GPU utilization + KV-cache
-  occupancy across concurrency. The c=16→32 efficiency drop (73% → 53%)
-  suggests we're hitting the L4's compute ceiling; nailing down whether
-  it's compute, memory bandwidth, or scheduler overhead would tell us
-  whether more concurrency is worth it.
-- **AWQ / GPTQ 4-bit quantization** — should cut weight-bytes 4× (Qwen 3B
-  6 GB → ~1.5 GB), opening ~6 GB more for KV cache → higher max
-  concurrency. Track accuracy delta on the 125-record eval.
-- **Speculative decoding** — draft model + Qwen 3B verifier. Track
-  acceptance rate and throughput delta.
-- **Larger / better-tuned model** — Qwen 2.5 7B on the same L4 (with
-  quant) is the right experiment if 3B's accuracy floor is the
-  blocker rather than the engineering.
+- **Re-run AWQ + spec dec on a smaller GPU** (L4 24 GB, T4 16 GB).
+  Confirm the predicted reversal where weight bytes pressure KV cache
+  and target weight reads dominate.
+- **Try Qwen 2.5 7B (BF16 or AWQ) on A100**. The accuracy floor of 3B
+  is the real blocker (66% record acc vs 90% for gpt-4o-mini); a
+  larger model is the right fix, not kernel-level optimization on the
+  3B.
+- **Migrate Gemini caller to `google-genai` SDK**. The deprecated
+  `google-generativeai` rejected `thinking_config`; couldn't measure
+  full Gemini Flash without thinking. The new SDK would unlock
+  `gemini-2.5-flash` (no thinking) as a separate frontier-API row.
+- **Confidence intervals on the eval metrics**. With only 125 records,
+  per-field deltas of a few points sit within noise (the AWQ "frontier"
+  position in Part B is a clean example). Bootstrap CIs would make
+  ±-pp claims defensible at the per-percentage level.
+- **Long-context stress test**. KV cache instrumentation in step 2
+  ran at our SROIE input sizes (avg ~500-1400 tokens). Pushing to 8k+
+  tokens would actually pressure cache and let us re-test AWQ where
+  it should pay off.
 
 ## Limitations
 
@@ -233,3 +356,23 @@ Concrete gaps in what's measured here. Honest framing matters more than a clean 
   sanity check — see commit history).
 - No fine-tuning, no prompt-search, no few-shot examples. Part A intentionally
   measures the out-of-the-box model so Part B's optimizations have a clean baseline.
+
+**Part B coverage**
+- All Part B experiments ran on **A100 80 GB**. The verdicts (which
+  optimizations help / hurt) are hardware-specific. Smaller GPUs (T4, L4)
+  would likely show AWQ as a help (KV-cache pressure) and spec dec as
+  more competitive (target weight reads dominate). Larger models (7B+)
+  on the same hardware would also shift the verdict.
+- AWQ vs spec-dec measurements were taken at **narrow concurrency points**
+  (c=1, c=16; spec dec only at c=1) per the step-3 / step-4 trim plan.
+  Full concurrency sweeps would add precision but not change the verdict
+  given the magnitude of the regressions (2–3×).
+- **Acceptance rate for speculative decoding was not captured** — vLLM
+  0.20.x metric naming differs from earlier versions and our regex didn't
+  match. Raw `/metrics` snapshots are saved at
+  `experiments/04_speculative_decoding/metrics-spec-K*.txt` for post-hoc
+  inspection if anyone wants to extend the regex and recompute.
+- **Step 5 (composed "InferLab Optimized" config) was intentionally
+  skipped.** Continuous batching is already on by default; the other two
+  optimizations hurt; there was nothing to compose. Documented in the
+  "Skipped from the original plan" section above.
