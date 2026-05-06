@@ -21,7 +21,9 @@ def _build_predictor(name: str, model: str | None):
 
         return GeminiPredictor(model=model or DEFAULT_MODEL)
     if name == "vllm":
-        raise SystemExit("vllm predictor not yet implemented (step 6/7)")
+        from baselines.vllm_caller import DEFAULT_MODEL, VLLMPredictor
+
+        return VLLMPredictor(model=model or DEFAULT_MODEL)
     raise SystemExit(f"unknown predictor: {name}")
 
 
