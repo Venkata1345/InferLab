@@ -8,7 +8,12 @@ import os
 
 import pytest
 
-from baselines.vllm_caller import VLLMPredictor, _safe_name, from_env
+from baselines.vllm_caller import (
+    VLLMPredictor,
+    _safe_name,
+    _strip_markdown_fences,
+    from_env,
+)
 from service.schema import INVOICE_JSON_SCHEMA
 from service.vllm_server import DEFAULT_CONFIG
 
@@ -39,9 +44,32 @@ class TestVLLMPredictor:
         # Determinism is non-negotiable for accuracy metrics — guard the default.
         assert VLLMPredictor().temperature == 0.0
 
-    def test_guided_json_is_invoice_schema(self) -> None:
+    def test_response_format_uses_invoice_schema(self) -> None:
         p = VLLMPredictor()
-        assert p._guided_json is INVOICE_JSON_SCHEMA
+        assert p._response_format["type"] == "json_schema"
+        assert p._response_format["json_schema"]["name"] == "Invoice"
+        assert p._response_format["json_schema"]["schema"] is INVOICE_JSON_SCHEMA
+
+
+class TestStripMarkdownFences:
+    def test_no_fences_pass_through(self) -> None:
+        assert _strip_markdown_fences('{"a": 1}') == '{"a": 1}'
+
+    def test_strips_json_fence(self) -> None:
+        wrapped = '```json\n{"a": 1}\n```'
+        assert _strip_markdown_fences(wrapped) == '{"a": 1}'
+
+    def test_strips_bare_fence(self) -> None:
+        wrapped = '```\n{"a": 1}\n```'
+        assert _strip_markdown_fences(wrapped) == '{"a": 1}'
+
+    def test_strips_with_surrounding_whitespace(self) -> None:
+        wrapped = '   ```json\n{"a": 1}\n```   '
+        assert _strip_markdown_fences(wrapped) == '{"a": 1}'
+
+    def test_handles_unclosed_fence(self) -> None:
+        # Defensive: opening fence but no closing one shouldn't blow up.
+        assert _strip_markdown_fences('```json\n{"a": 1}') == '{"a": 1}'
 
 
 class TestFromEnv:
